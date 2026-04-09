@@ -1,0 +1,328 @@
+/* ============================================================
+   Conflict Intelligence System — Global CSS Design System
+   Dark glassmorphism · Electric blue accent · Premium feel
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+/* ── Tokens ───────────────────────────────────────────────── */
+:root {
+  --bg-base:          #050912;
+  --bg-elevated:      #0a1128;
+  --bg-card:          rgba(10, 17, 40, 0.65);
+  --glass-border:     rgba(255, 255, 255, 0.1);
+  --glass-border-hover: rgba(0, 212, 255, 0.35);
+
+  --accent-blue:      #2196f3;
+  --accent-blue-dim:  rgba(0, 212, 255, 0.15);
+  --accent-purple:    #7b5ea7;
+  --accent-purple-dim:rgba(123, 94, 167, 0.2);
+  --accent-green:     #00e676;
+  --accent-red:       #ff5252;
+
+  --risk-high:        #ff4040;
+  --risk-high-dim:    rgba(255, 64, 64, 0.15);
+  --risk-medium:      #ff8c00;
+  --risk-medium-dim:  rgba(255, 140, 0, 0.15);
+  --risk-low:         #00e676;
+  --risk-low-dim:     rgba(0, 230, 118, 0.15);
+
+  --text-primary:     #ffffff;
+  --text-secondary:   rgba(255, 255, 255, 0.6);
+  --text-muted:       #3d5080;
+
+  --bg-gradient:      radial-gradient(circle at top left, #121212, #000000);
+  --glass:            rgba(255, 255, 255, 0.05);
+
+  --font-ui:    'Inter', system-ui, sans-serif;
+  --font-head:  'Space Grotesk', 'Inter', sans-serif;
+
+  --radius-sm:  6px;
+  --radius-md:  12px;
+  --radius-lg:  20px;
+  --radius-xl:  28px;
+
+  --shadow-card:  0 4px 32px rgba(0, 0, 0, 0.5), 0 1px 0 var(--glass-border);
+  --shadow-glow:  0 0 40px rgba(0, 212, 255, 0.12);
+  --transition:   all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Reset ────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  /* subtle animated grid background */
+  background-image:
+    linear-gradient(rgba(0, 212, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: gridShift 20s linear infinite;
+}
+
+@keyframes gridShift {
+  0%   { background-position: 0 0; }
+  100% { background-position: 60px 60px; }
+}
+
+/* ── Typography ───────────────────────────────────────────── */
+h1, h2, h3, h4 { font-family: var(--font-head); font-weight: 700; }
+
+/* ── Layout ───────────────────────────────────────────────── */
+.app-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+/* ── Glass card ──────────────────────────────────────────── */
+.glass-card {
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  box-shadow: var(--shadow-card);
+  transition: var(--transition);
+}
+.glass-card:hover {
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--shadow-card), var(--shadow-glow);
+}
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 3px; }
+
+/* ── Animations ───────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+/* --- Tactical UI Components --- */
+.badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.chip {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.7);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+}
+
+.status-high { color: #ff1744; font-weight: bold; }
+.status-med { color: #ffa726; font-weight: bold; }
+.status-low { color: #00e676; font-weight: bold; }
+
+.impact-grid {
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+}
+
+.stat-row .label { opacity: 0.6; }
+.stat-row .value { font-weight: 600; }
+
+@keyframes scanline {
+  0%   { top: -40px; }
+  100% { top: 100%; }
+}
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.fade-in { animation: fadeInUp 0.45s ease both; }
+
+/* ── Skeleton loader ─────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 25%,
+    rgba(0, 212, 255, 0.05) 50%,
+    var(--bg-elevated) 75%
+  );
+  background-size: 400px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Analysis Progress ───────────────────────────────── */
+.analysis-progress-wrapper {
+  max-width: 800px;
+  margin: 2rem auto;
+  position: relative;
+  overflow: hidden;
+  padding: 1.5rem;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.steps-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 2;
+  flex: 1;
+}
+
+.step-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  border: 2px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.step-item.active .step-icon {
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  box-shadow: 0 0 15px rgba(33, 150, 243, 0.3);
+  transform: scale(1.1);
+}
+
+.step-item.done .step-icon {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+  color: #000;
+}
+
+.step-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #666;
+}
+
+.step-item.active .step-label { color: var(--text-primary); }
+.step-item.done .step-label { color: var(--accent-green); }
+
+.step-connector {
+  position: absolute;
+  top: 20px;
+  left: calc(50% + 20px);
+  width: calc(100% - 40px);
+  height: 2px;
+  background: #333;
+  z-index: 1;
+}
+
+.step-item.done .step-connector { background: var(--accent-green); }
+
+.progress-bar-glow {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+}
+
+/* ── Map & Trends ────────────────────────────────────── */
+.map-card { padding: 0 !important; overflow: hidden; }
+.map-container { border-radius: 12px; border: 1px solid var(--glass-border); }
+
+.card-header .subtitle {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+.location-label {
+  font-size: 0.75rem;
+  background: rgba(33, 150, 243, 0.1);
+  color: var(--accent-blue);
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  border: 1px solid rgba(33, 150, 243, 0.2);
+}
+
+/* ── Results grid ─────────────────────────────────────────── */
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 2rem auto;
+}
+
+@media (max-width: 900px) {
+  .results-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Empty / Error states ─────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 80px 24px;
+  color: var(--text-secondary);
+}
+.empty-state .icon {
+  font-size: 56px;
+  margin-bottom: 20px;
+  opacity: 0.4;
+}
+.empty-state h3 {
+  font-size: 1.3rem;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.empty-state p {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.error-banner {
+  background: var(--risk-high-dim);
+  border: 1px solid rgba(255, 64, 64, 0.3);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  color: #ff8080;
+  font-size: 0.9rem;
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
