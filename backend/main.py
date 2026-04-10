@@ -69,6 +69,7 @@ app.add_middleware(
         "http://127.0.0.1:5173",
         "http://localhost:3000",
     ],
+    allow_origin_regex=r"https://.*\.pages\.dev",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -155,6 +156,10 @@ async def analyze(
     query: str = Query(
         ...,
         description="Any topic or conflict to analyse (e.g. 'Epstein files', 'Gaza ceasefire')",
+    ),
+    lang: str = Query(
+        default="en",
+        description="Language for the analysis output (e.g. 'en', 'es', 'hi')",
     )
 ):
     """
@@ -168,8 +173,9 @@ async def analyze(
     from processing.cleaner import clean_documents
     from processing.chunker import chunk_documents
 
-    print(f"[/analyze] Fetching fresh news for: '{query}'")
-    gnews_task = asyncio.to_thread(fetch_gnews, query, 10)
+    print(f"[/analyze] Fetching fresh news for: '{query}' [Language: {lang}]")
+    gnews_task = asyncio.to_thread(fetch_gnews, query, 10, lang)
+
     rss_task   = asyncio.to_thread(fetch_rss,   query)
 
     gnews_docs, rss_docs = await asyncio.gather(gnews_task, rss_task)
@@ -226,8 +232,8 @@ async def analyze(
     source_urls = [d.metadata.get("url", d.metadata.get("link", "")) for d in docs_to_analyze]
 
     try:
-        print(f"[/analyze] Starting single-shot pipeline for: '{query}'")
-        result = run_analysis(query, docs_to_analyze, source_urls)
+        print(f"[/analyze] Starting single-shot pipeline for: '{query}' [Language: {lang}]")
+        result = run_analysis(query, docs_to_analyze, source_urls, lang=lang)
 
         # ── Save to trends DB — type-safe coercion to prevent SQLite errors ──
         def _safe_str(v, default="unknown"):

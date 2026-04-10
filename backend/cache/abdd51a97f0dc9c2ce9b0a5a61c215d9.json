@@ -1,64 +1,65 @@
 {
   "query": "Sahel region",
-  "cached_at": "2026-04-10T12:33:14.484609",
+  "cached_at": "2026-04-10T16:54:57.164675",
   "result": {
     "risk": "MEDIUM",
-    "risk_numerical": 55,
-    "confidence": 0.72,
+    "risk_numerical": 50,
+    "confidence": 0.4,
     "trajectory": "STABLE",
-    "location": "Sahel region of Africa",
-    "latitude": 13.0,
-    "longitude": -2.0,
-    "summary": "The Sahel region has become the global epicentre of terrorism, accounting for nearly half of all terror-related deaths in 2025, with ongoing rivalries between Al Qaeda and ISIS affiliates.",
-    "reasoning": "The high frequency of conflicts and terrorist activities in the region indicate a medium risk level.",
-    "hotspots": [
-      {
-        "name": "Sahel region",
-        "lat": 13.0,
-        "lng": -2.0,
-        "intensity": 8
-      }
-    ],
-    "signals": [
-      {
-        "source": "Global Terrorism Report",
-        "text": "The Sahel region accounted for nearly half of all terror-related deaths in 2025.",
-        "intensity": 0.9
-      }
-    ],
+    "location": "Unknown",
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "summary": "Analysis of 'Sahel region' could not be completed. Please try again.",
+    "reasoning": "Insufficient data to produce a reliable assessment.",
+    "hotspots": [],
+    "signals": [],
     "scenarios": {
       "best": {
-        "description": "Improved regional cooperation and security measures lead to a decrease in terrorist activities.",
-        "probability": "15%"
+        "description": "Situation resolves without escalation",
+        "probability": "30%"
       },
       "likely": {
-        "description": "Ongoing rivalries between Al Qaeda and ISIS affiliates continue, with potential escalation.",
-        "probability": "60%"
+        "description": "Current trajectory continues",
+        "probability": "50%"
       },
       "worst": {
-        "description": "The region descends into chaos, with increased terrorist activities and instability.",
-        "probability": "25%"
+        "description": "Significant negative development",
+        "probability": "20%"
       }
     },
     "civilian_impact": {
-      "casualties": "MODERATE",
-      "displacement": "Significant displacement expected due to ongoing conflicts.",
-      "shortages": [
-        "Access to basic services",
-        "Security"
-      ]
+      "casualties": "UNKNOWN",
+      "displacement": "Monitoring required",
+      "shortages": []
     },
     "infrastructure": {
-      "status": "Institutional systems under pressure due to lack of state control.",
-      "chokepoints": [
-        "Regional governance",
-        "Economic stability"
-      ]
+      "status": "Unknown",
+      "chokepoints": []
     },
     "sources": [
       {
-        "name": "Global Terrorism Report",
-        "title": "Sahel region accounts for nearly half of all terror-related deaths.",
+        "name": "https://www.devdiscourse.com/article/law-order/3867632-first-clashes-in-niger-between-al-qaeda-and-isis-affiliates-signal-intensified-rivalry",
+        "title": "Source Document",
+        "type": "OSINT"
+      },
+      {
+        "name": "https://www.africanews.com/2026/03/19/sahel-accounts-for-nearly-half-of-all-terror-related-deaths-report/",
+        "title": "Source Document",
+        "type": "OSINT"
+      },
+      {
+        "name": "https://www.aljazeera.com/news/2026/4/10/zelenskyy-says-ukrainian-interceptors-downed-iran-drones-in-the-middle-east?traffic_source=rss",
+        "title": "Source Document",
+        "type": "OSINT"
+      },
+      {
+        "name": "https://www.aljazeera.com/news/2026/4/10/neither-war-nor-peace-what-gaza-looks-like-six-months-into-ceasefire?traffic_source=rss",
+        "title": "Source Document",
+        "type": "OSINT"
+      },
+      {
+        "name": "https://www.theguardian.com/world/2026/apr/09/who-can-claim-victory-iran-ceasefire-china",
+        "title": "Source Document",
         "type": "OSINT"
       }
     ]

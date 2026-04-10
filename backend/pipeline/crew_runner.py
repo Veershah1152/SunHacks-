@@ -60,15 +60,17 @@ def _call_ollama(prompt: str, timeout: int = 180) -> str:
         return ""
 
 
-def _build_master_prompt(query: str, context: str) -> str:
+def _build_master_prompt(query: str, context: str, lang_name: str = "English") -> str:
     """
     Build a tight, example-driven prompt that local LLMs can follow reliably.
-    Uses a filled-in example to show the model exactly what format is expected.
     """
     return f"""You are an intelligence analyst. Read the articles below about "{query}" and produce a JSON analysis.
 
+CRITICAL INSTRUCTION: All text values in your JSON output (summary, reasoning, description, status, casualties, etc.) MUST be written in {lang_name}. Do NOT use English for these values. Keep the JSON keys exactly as shown in English.
+
 ARTICLES:
 {context}
+
 
 Based ONLY on the articles above, fill in this JSON template. Replace every value with your real analysis of "{query}":
 
@@ -160,7 +162,9 @@ def run_analysis(
     query: str,
     retrieved_docs: list[Document],
     source_urls: list[str],
+    lang: str = "en"
 ) -> dict:
+
     """
     Run the fast single-shot conflict analysis pipeline.
     """
@@ -185,7 +189,17 @@ def run_analysis(
         return _fallback(source_urls, query)
 
     # ── Single LLM Call ─────────────────────────────────────────────────────
-    prompt = _build_master_prompt(query, context)
+    lang_map = {
+        "en": "English",
+        "es": "Spanish (Español)",
+        "hi": "Hindi (हिन्दी)",
+        "fr": "French",
+        "de": "German"
+    }
+    lang_name = lang_map.get(lang, "English")
+    
+    prompt = _build_master_prompt(query, context, lang_name=lang_name)
+
     print(f"[Pipeline] Sending prompt for: '{query}' ({len(context)} chars context)")
 
     raw_output = _call_ollama(prompt)

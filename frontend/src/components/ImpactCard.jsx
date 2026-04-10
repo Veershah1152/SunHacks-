@@ -1,7 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
-export default function ImpactCard({ result, loading }) {
+const ImpactCard = React.memo(function ImpactCard({ result, loading }) {
+  const { t } = useTranslation();
   if (loading || !result) return null;
   const impact = result?.civilian_impact;
   const infra = result?.infrastructure;
@@ -15,7 +17,7 @@ export default function ImpactCard({ result, loading }) {
     >
       {/* ── Header (always visible) ── */}
       <div className="card-label" style={{ marginBottom: '20px', flexShrink: 0 }}>
-        Humanitarian &amp; Infrastructure
+        {t('intel.impact_title')}
       </div>
 
       {/* ── Scrollable body ── */}
@@ -24,7 +26,6 @@ export default function ImpactCard({ result, loading }) {
         flex: 1,
         maxHeight: '340px',
         paddingRight: '8px',
-        /* Custom scrollbar */
         scrollbarWidth: 'thin',
         scrollbarColor: 'var(--primary) transparent',
       }}>
@@ -43,23 +44,23 @@ export default function ImpactCard({ result, loading }) {
 
           {/* ── Civilian Cost ── */}
           <div className="impact-section">
-            <h4 style={{ fontSize: '0.8rem', color: 'white', marginBottom: '16px', opacity: 0.9, fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>CIVILIAN COST</h4>
+            <h4 style={{ fontSize: '0.8rem', color: 'white', marginBottom: '16px', opacity: 0.9, fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>{t('intel.civilian_cost')}</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ fontSize: '0.85rem' }}>
-                <div style={{ opacity: 0.6, marginBottom: '6px', fontSize: '0.65rem', fontWeight: 800 }}>CASUALTY RISK</div>
+                <div style={{ opacity: 0.6, marginBottom: '6px', fontSize: '0.65rem', fontWeight: 800 }}>{t('intel.casualty_risk')}</div>
                 <div style={{ fontWeight: 800, color: impact?.casualties?.toUpperCase() === 'HIGH' ? 'var(--risk-high)' : 'var(--primary)' }}>
-                  {impact?.casualties || 'UNKNOWN'}
+                  {impact?.casualties ? t(`risk.${impact.casualties.toLowerCase()}`, { defaultValue: impact.casualties }) : t('risk.low')}
                 </div>
               </div>
               <div style={{ fontSize: '0.85rem' }}>
-                <div style={{ opacity: 0.6, marginBottom: '6px', fontSize: '0.65rem', fontWeight: 800 }}>DISPLACEMENT</div>
+                <div style={{ opacity: 0.6, marginBottom: '6px', fontSize: '0.65rem', fontWeight: 800 }}>{t('intel.displacement')}</div>
                 <div style={{ fontWeight: 600, color: 'var(--risk-medium)', lineHeight: 1.5, wordBreak: 'break-word', fontSize: '0.8rem' }}>
-                  {impact?.displacement || 'STABLE'}
+                  {impact?.displacement || t('risk.low')}
                 </div>
               </div>
             </div>
             <div style={{ marginTop: '24px' }}>
-              <div style={{ fontSize: '0.65rem', opacity: 0.5, marginBottom: '10px', fontWeight: 800 }}>IMPACTED RESOURCES</div>
+              <div style={{ fontSize: '0.65rem', opacity: 0.5, marginBottom: '10px', fontWeight: 800 }}>{t('intel.impacted_resources')}</div>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {(impact?.shortages || []).map((s, i) => (
                   <span key={i} className="source-pill" style={{ margin: 0 }}>
@@ -72,15 +73,15 @@ export default function ImpactCard({ result, loading }) {
 
           {/* ── Operational Assets ── */}
           <div className="impact-section" style={{ borderLeft: '1px solid rgba(255,255,255,0.06)', paddingLeft: '24px' }}>
-            <h4 style={{ fontSize: '0.8rem', color: 'white', marginBottom: '16px', opacity: 0.9, fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>OPERATIONAL ASSETS</h4>
+            <h4 style={{ fontSize: '0.8rem', color: 'white', marginBottom: '16px', opacity: 0.9, fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>{t('intel.operational_assets')}</h4>
             <div style={{ fontSize: '0.85rem', marginBottom: '24px' }}>
-              <div style={{ opacity: 0.6, marginBottom: '6px', fontSize: '0.65rem', fontWeight: 800 }}>BASE CONDITION</div>
+              <div style={{ opacity: 0.6, marginBottom: '6px', fontSize: '0.65rem', fontWeight: 800 }}>{t('intel.base_condition')}</div>
               <div style={{ fontWeight: 600, lineHeight: 1.5, wordBreak: 'break-word', fontSize: '0.8rem' }}>
-                {typeof infra?.status === 'string' ? infra.status.toUpperCase() : 'FUNCTIONAL'}
+                {typeof infra?.status === 'string' ? infra.status.toUpperCase() : t('intel.base_status')}
               </div>
             </div>
             <div>
-              <div style={{ fontSize: '0.65rem', opacity: 0.5, marginBottom: '10px', fontWeight: 800 }}>CRITICAL CHOKEPOINTS</div>
+              <div style={{ fontSize: '0.65rem', opacity: 0.5, marginBottom: '10px', fontWeight: 800 }}>{t('intel.critical_chokepoints')}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {(infra?.chokepoints || []).map((c, i) => (
                   <div key={i} style={{ 
@@ -103,4 +104,6 @@ export default function ImpactCard({ result, loading }) {
       </div>
     </motion.div>
   );
-}
+});
+
+export default ImpactCard;

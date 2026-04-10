@@ -2,6 +2,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl, CircleMa
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 // Fix for default marker icon in Leaflet + React
 delete L.Icon.Default.prototype._getIconUrl
@@ -27,6 +28,7 @@ function ChangeView({ center }) {
 }
 
 export default function ConflictMap({ location, lat, lng, risk, hotspots = [] }) {
+  const { t } = useTranslation();
   const position = [lat || 0, lng || 0]
   const riskColor = getRiskColor(risk)
 
@@ -44,7 +46,7 @@ export default function ConflictMap({ location, lat, lng, risk, hotspots = [] })
           }}>
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                <h4 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '0.8rem', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                 GEOSPATIAL INTEL
+                 {t('intel.geospatial_intel')}
                </h4>
                <span className="risk-badge" style={{
                  padding: '4px 8px',
@@ -55,7 +57,7 @@ export default function ConflictMap({ location, lat, lng, risk, hotspots = [] })
                  borderWidth: '1px',
                  borderStyle: 'solid'
                }}>
-                 {risk || 'PENDING'}
+                 {risk ? t(`risk.${risk.toLowerCase()}`, { defaultValue: risk }) : t('system.awaiting_directive')}
                </span>
             </div>
           </div>
@@ -73,7 +75,7 @@ export default function ConflictMap({ location, lat, lng, risk, hotspots = [] })
             fontFamily: 'var(--font-display)',
             letterSpacing: '0.08em'
           }}>
-            📍 {typeof location === 'string' ? location : 'GLOBAL VIEW'}
+            📍 {typeof location === 'string' ? location : t('intel.global_view')}
           </div>
         </div>
       </div>
@@ -104,7 +106,7 @@ export default function ConflictMap({ location, lat, lng, risk, hotspots = [] })
             <Marker position={position}>
               <Popup>
                 <div style={{ fontFamily: 'var(--font-body)', padding: '4px' }}>
-                    <strong style={{ color: riskColor, fontFamily: 'var(--font-display)' }}>RISK: {risk}</strong> <br />
+                    <strong style={{ color: riskColor, fontFamily: 'var(--font-display)' }}>{t('risk.level')}: {risk ? t(`risk.${risk.toLowerCase()}`) : ''}</strong> <br />
                     <span style={{ fontSize: '0.9rem' }}>{location}</span>
                 </div>
               </Popup>
@@ -126,7 +128,7 @@ export default function ConflictMap({ location, lat, lng, risk, hotspots = [] })
               <Popup>
                 <div style={{ fontFamily: 'var(--font-body)', padding: '4px' }}>
                     <strong style={{ fontFamily: 'var(--font-display)' }}>{spot.name}</strong> <br />
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>INTENSITY: {spot.intensity}/10</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{t('intel.intensity')}: {spot.intensity}/10</span>
                 </div>
               </Popup>
             </CircleMarker>
@@ -152,11 +154,11 @@ export default function ConflictMap({ location, lat, lng, risk, hotspots = [] })
         }}>
            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.65rem', fontFamily: 'var(--font-display)', fontWeight: 800, letterSpacing: '0.08em' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--risk-high)', boxShadow: '0 0 12px var(--risk-high)' }}></div>
-              <span>ESCALATING</span>
+              <span>{t('intel.escalating')}</span>
            </div>
            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.65rem', fontFamily: 'var(--font-display)', fontWeight: 800, letterSpacing: '0.08em' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--risk-medium)', boxShadow: '0 0 12px var(--risk-medium)' }}></div>
-              <span>RISING TENSION</span>
+              <span>{t('intel.rising_tension')}</span>
            </div>
         </div>
       </div>

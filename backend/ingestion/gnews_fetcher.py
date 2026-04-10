@@ -12,7 +12,7 @@ from langchain_core.documents import Document
 GNEWS_BASE_URL = "https://gnews.io/api/v4/search"
 
 
-def fetch_gnews(query: str, max_results: int = 10) -> list[Document]:
+def fetch_gnews(query: str, max_results: int = 10, lang: str = "en") -> list[Document]:
     """
     Fetch news articles from GNews for a given query keyword.
 
@@ -31,7 +31,8 @@ def fetch_gnews(query: str, max_results: int = 10) -> list[Document]:
     params = {
         "q": query,
         "token": api_key,
-        "lang": "en",
+        "lang": lang,
+
         "max": min(max_results, 10),  # free tier hard cap
         "sortby": "publishedAt",
     }

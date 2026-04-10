@@ -1,0 +1,104 @@
+{
+  "system": {
+    "title": "CONFLICT PREDICTION SYSTEM",
+    "logo_text": "CPS",
+    "access_level": "Access: OMEGA",
+    "uplink_nominal": "UPLINK NOMINAL",
+    "analysing_target": "ANALYSING TARGET...",
+    "ingesting_feed": "INGESTING FEED...",
+    "awaiting_directive": "AWAITING DIRECTIVE",
+    "network_secure": "NETWORK: SECURE",
+    "active_session": "ACTIVE_SESSION",
+    "global_sentinel": "GLOBAL_SENTINEL",
+    "tagline": "SECURE INTELLIGENCE LINK // REAL-TIME GEOPOLITICAL ANALYSIS"
+  },
+  "sidebar": {
+    "intel_uplink": "INTEL UPLINK",
+    "terminate_session": "Terminate Session"
+  },
+  "dashboard": {
+    "database": "Database",
+    "core": "Core",
+    "atlas": "Atlas",
+    "network": "Network",
+    "persistent": "PERSISTENT",
+    "synced": "SYNCED",
+    "encrypted": "ENCRYPTED",
+    "idle_body": "Neural OSINT pipeline operational. Awaiting tactical directive from primary uplink console. System primed for regional risk modeling and conflict trajectory analysis."
+  },
+  "controls": {
+    "analyze": "RUN ANALYSIS",
+    "update": "SYNC FEED",
+    "placeholder": "Enter Region or Topic (e.g. Gaza, Taiwan)...",
+    "export_dossier": "EXPORT DOSSIER"
+  },
+  "risk": {
+    "level": "RISK LEVEL",
+    "low": "LOW",
+    "medium": "MEDIUM",
+    "high": "HIGH",
+    "rising_tension": "RISING TENSION",
+    "global_view": "GLOBAL VIEW",
+    "stable": "STABLE",
+    "escalating_short": "ESCALATING",
+    "de_escalating_short": "DE-ESCALATING"
+  },
+  "charts": {
+    "run_metrics_prompt": "RUN ANALYSIS TO VIEW METRICS",
+    "more_analyses_prompt": "RUN MORE ANALYSES FOR TREND VIEW",
+    "snapshots": "SNAPSHOTS",
+    "risk_score": "Risk Score",
+    "confidence": "Confidence",
+    "trajectory": "Trajectory"
+  },
+  "metadata": {
+    "model": "MODEL",
+    "pipeline": "PIPELINE",
+    "status_online": "SYS_STATUS_ONLINE",
+    "early_warning": "EARLY_WARNING_NETWORK",
+    "secure_channel": "SECURE ENCRYPTED CHANNEL // END-TO-END VERIFICATION"
+  },
+  "login": {
+    "welcome": "WELCOME COMMANDER",
+    "instruction": "Initiate secure uplink using authorized credentials",
+    "google_login": "UPLINK WITH GOOGLE",
+    "credentials_login": "CREDENTIAL LOGIN",
+    "bypass_title": "EMERGENCY BYPASS",
+    "bypass_desc": "Protocol used only during Google API failure",
+    "bypass_button": "INITIATE BYPASS",
+    "register_access": "Register Access",
+    "already_cleared": "Already cleared for access? Log in.",
+    "agent_name": "Agent Name",
+    "email_address": "Email Address",
+    "security_key": "Security Key (Password)",
+    "or": "— OR —",
+    "register_prompt": "Not registered? Create account."
+  },
+  "intel": {
+    "situation_report": "SITUATION REPORT // ALPHA_VECTOR",
+    "risk_assessment": "RISK ASSESSMENT",
+    "signals_title": "MULTI-AGENT SIGNAL DECODING",
+    "impact_title": "HUMANITARIAN & INFRASTRUCTURE",
+    "geospatial_intel": "GEOSPATIAL INTEL",
+    "confidence_score": "CONFIDENCE SCORE",
+    "signal_depth": "SIGNAL DEPTH",
+    "evidence_footprint": "EVIDENCE FOOTPRINT",
+    "civilian_cost": "CIVILIAN COST",
+    "casualty_risk": "CASUALTY RISK",
+    "displacement": "DISPLACEMENT",
+    "impacted_resources": "IMPACTED RESOURCES",
+    "operational_assets": "OPERATIONAL ASSETS",
+    "base_condition": "BASE CONDITION",
+    "critical_chokepoints": "CRITICAL CHOKEPOINTS",
+    "trajectory_over_time": "RISK TRAJECTORY OVER TIME",
+    "scorecard_title": "INTELLIGENCE SCORECARD",
+    "matched": "MATCHED",
+    "verified_consensus": "VERIFIED CONSENSUS",
+    "base_status": "FUNCTIONAL",
+    "intensity": "INTENSITY",
+    "no_signals": "No active signals detected in current vector.",
+    "escalating": "ESCALATING",
+    "rising_tension": "RISING TENSION",
+    "global_view": "GLOBAL VIEW"
+  }
+}

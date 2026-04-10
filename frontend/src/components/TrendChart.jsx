@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   AreaChart,
   Area,
@@ -14,7 +15,7 @@ const RISK_NUM_COLOR = (n) => n >= 70 ? '#c31e00' : n >= 40 ? '#ffa000' : '#00de
 const RISK_LEVEL_MAP = { LOW: 33, MEDIUM: 55, HIGH: 80 };
 
 // Custom tooltip
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label, t }) => {
   if (!active || !payload?.length) return null;
   return (
     <div style={{
@@ -28,7 +29,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       <div style={{ color: '#7a8089', marginBottom: '6px' }}>{label}</div>
       {payload.map((p, i) => (
         <div key={i} style={{ color: p.color, fontWeight: 700 }}>
-          {p.name}: {typeof p.value === 'number' ? p.value.toFixed(p.name.includes('%') ? 1 : 0) : p.value}
+          {(p.name === 'Risk Score') ? t('charts.risk_score') : (p.name === 'Confidence') ? t('charts.confidence') : p.name}: {typeof p.value === 'number' ? p.value.toFixed(p.name.includes('%') ? 1 : 0) : p.value}
           {p.name === 'Confidence' ? '%' : ''}
         </div>
       ))}
@@ -37,6 +38,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function TrendChart({ data, result }) {
+  const { t } = useTranslation();
   const hasHistory = data && data.length >= 2;
 
   // ── Build chart data ─────────────────────────────────────────────────────
@@ -56,10 +58,10 @@ export default function TrendChart({ data, result }) {
     const traj    = result.trajectory || 'STABLE';
 
     chartData = [
-      { label: 'Risk Score', value: riskNum, fill: RISK_NUM_COLOR(riskNum), max: 100 },
-      { label: 'Confidence', value: conf,     fill: '#00d2ff',              max: 100 },
+      { label: t('charts.risk_score'), value: riskNum, fill: RISK_NUM_COLOR(riskNum), max: 100 },
+      { label: t('charts.confidence'), value: conf,     fill: '#00d2ff',              max: 100 },
       {
-        label: 'Trajectory',
+        label: t('charts.trajectory'),
         value: traj === 'ESCALATING' ? 80 : traj === 'DE-ESCALATING' ? 20 : 50,
         fill: traj === 'ESCALATING' ? '#c31e00' : traj === 'DE-ESCALATING' ? '#00de72' : '#ffa000',
         max: 100
@@ -73,7 +75,7 @@ export default function TrendChart({ data, result }) {
       <div className="intel-card" style={{ height: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '12px' }}>
         <div style={{ fontSize: '2.5rem', opacity: 0.2 }}>📈</div>
         <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>
-          RUN ANALYSIS TO VIEW METRICS
+          {t('charts.run_metrics_prompt')}
         </div>
       </div>
     );
@@ -85,9 +87,9 @@ export default function TrendChart({ data, result }) {
       <div className="intel-card" style={{ height: '320px', display: 'flex', flexDirection: 'column' }}>
         <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span className="card-label" style={{ marginBottom: 0 }}>
-            INTELLIGENCE SCORECARD
+            {t('intel.scorecard_title')}
           </span>
-          <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)' }}>RUN MORE ANALYSES FOR TREND VIEW</span>
+          <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)' }}>{t('charts.more_analyses_prompt')}</span>
         </div>
 
         {/* Manual bar chart for single result */}
@@ -97,9 +99,9 @@ export default function TrendChart({ data, result }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '0.75rem' }}>
                 <span style={{ color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>{item.label.toUpperCase()}</span>
                 <span style={{ fontWeight: 800, color: item.fill }}>
-                  {item.label === 'Trajectory'
-                    ? (result?.trajectory || 'STABLE')
-                    : `${item.value}${item.label === 'Risk Score' ? '/100' : '%'}`
+                  {item.label === t('charts.trajectory')
+                    ? (result?.trajectory ? t(`risk.${result.trajectory.toLowerCase().replace('-', '_')}_short`, { defaultValue: result.trajectory }) : t('risk.stable'))
+                    : `${item.value}${item.label === t('charts.risk_score') ? '/100' : '%'}`
                   }
                 </span>
               </div>
@@ -127,9 +129,9 @@ export default function TrendChart({ data, result }) {
     <div className="intel-card" style={{ height: '320px', display: 'flex', flexDirection: 'column' }}>
       <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span className="card-label" style={{ marginBottom: 0 }}>
-          RISK TRAJECTORY OVER TIME
+          {t('intel.trajectory_over_time')}
         </span>
-        <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)' }}>{chartData.length} SNAPSHOTS</span>
+        <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)' }}>{chartData.length} {t('charts.snapshots')}</span>
       </div>
 
       <div style={{ flex: 1, width: '100%' }}>
@@ -155,9 +157,9 @@ export default function TrendChart({ data, result }) {
               dy={8}
             />
             <YAxis hide domain={[0, 100]} />
-            <ReferenceLine y={70} stroke="var(--risk-high-on)" strokeOpacity={0.4} strokeDasharray="4 4" label={{ value: 'HIGH', fill: 'var(--risk-high-on)', fontSize: 10, position: 'insideTopRight' }} />
-            <ReferenceLine y={30} stroke="var(--risk-low-dim)" strokeOpacity={0.4} strokeDasharray="4 4" label={{ value: 'LOW',  fill: 'var(--risk-low-dim)', fontSize: 10, position: 'insideBottomRight' }} />
-            <Tooltip content={<CustomTooltip />} />
+            <ReferenceLine y={70} stroke="var(--risk-high-on)" strokeOpacity={0.4} strokeDasharray="4 4" label={{ value: t('risk.high'), fill: 'var(--risk-high-on)', fontSize: 10, position: 'insideTopRight' }} />
+            <ReferenceLine y={30} stroke="var(--risk-low-dim)" strokeOpacity={0.4} strokeDasharray="4 4" label={{ value: t('risk.low'),  fill: 'var(--risk-low-dim)', fontSize: 10, position: 'insideBottomRight' }} />
+            <Tooltip content={<CustomTooltip t={t} />} />
             <Area
               type="monotone"
               dataKey="risk"

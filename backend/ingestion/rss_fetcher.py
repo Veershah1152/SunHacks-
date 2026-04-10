@@ -28,6 +28,14 @@ RSS_FEEDS: dict[str, str] = {
     "google_intl":    "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx1YlY4U0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en",
     "reuters_world":  "https://feeds.reuters.com/reuters/worldNews",
     "abc_intl":       "https://abcnews.go.com/abcnews/internationalheadlines",
+    
+    # Hindi Sources
+    "bbc_hindi":      "https://feeds.bbci.co.uk/hindi/rss.xml",
+    "amar_ujala":     "https://www.amarujala.com/rss/breaking-news.xml",
+    
+    # Spanish Sources
+    "el_pais_world":  "https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/section/internacional/portada",
+    "bbc_mundo":      "https://feeds.bbci.co.uk/mundo/rss.xml",
 }
 
 

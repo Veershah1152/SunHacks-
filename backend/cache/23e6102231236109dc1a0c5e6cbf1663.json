@@ -1,55 +1,55 @@
 {
   "query": "Sudan conflict",
-  "cached_at": "2026-04-10T13:59:14.478344",
+  "cached_at": "2026-04-10T17:59:03.928620",
   "result": {
     "risk": "MEDIUM",
-    "risk_numerical": 60,
-    "confidence": 0.8,
-    "trajectory": "ESCALATING",
-    "location": "Darfur, Sudan",
+    "risk_numerical": 55,
+    "confidence": 0.72,
+    "trajectory": "STABLE",
+    "location": "Sudan",
     "latitude": 15.0,
-    "longitude": 30.0,
-    "summary": "The Sudan conflict has escalated with deadly drone strikes on hospitals, killing at least 10 people, including medical staff. The violence against healthcare is severely impacting the country's healthcare system. Paramilitary forces are using sexual violence as a 'war weapon' in Darfur.",
-    "reasoning": "The risk level is assigned as MEDIUM due to the escalating violence and impact on civilians, but not high enough to be classified as HIGH due to the ongoing conflict and humanitarian concerns.",
+    "longitude": 31.0,
+    "summary": "The Sudan conflict has led to a dire situation, with ongoing civil war between the army and paramilitary forces causing devastating effects on civilians and infrastructure.",
+    "reasoning": "The articles highlight the escalating violence against healthcare, drone strikes on hospitals, and the impact on the country's healthcare system, indicating a medium-level risk of further instability.",
     "hotspots": [
       {
-        "name": "Darfur",
+        "name": "White Nile province",
         "lat": 15.0,
-        "lng": 30.0,
-        "intensity": 8
+        "lng": 31.0,
+        "intensity": 6
       }
     ],
     "signals": [
       {
-        "source": "UNHCR",
+        "source": "Euronews",
         "text": "Paramilitary forces kill at least 10 people in hospital drone attack",
-        "intensity": 0.9
+        "intensity": 0.7
       }
     ],
     "scenarios": {
       "best": {
-        "description": "Ongoing conflict with minimal escalation",
-        "probability": "15%"
+        "description": "Ongoing conflict subsides, and a peaceful resolution is reached",
+        "probability": "25%"
       },
       "likely": {
-        "description": "Escalation of violence and impact on civilians",
-        "probability": "60%"
+        "description": "Conflict escalates further, with increased violence against civilians and infrastructure",
+        "probability": "55%"
       },
       "worst": {
-        "description": "Worst-case scenario: complete collapse of healthcare system and widespread human rights abuses",
-        "probability": "25%"
+        "description": "Total collapse of the government, leading to widespread chaos and instability",
+        "probability": "20%"
       }
     },
     "civilian_impact": {
-      "casualties": "MODERATE",
-      "displacement": "Significant displacement expected",
+      "casualties": "LOW",
+      "displacement": "Minimal displacement expected",
       "shortages": [
         "Medical supplies",
         "Legal access"
       ]
     },
     "infrastructure": {
-      "status": "Critical infrastructure under pressure",
+      "status": "Institutional systems under pressure",
       "chokepoints": [
         "Healthcare system",
         "Media access"
@@ -57,8 +57,8 @@
     },
     "sources": [
       {
-        "name": "Euronews",
-        "title": "Sex and the City star Kristin Davis urges more empathy for Sudan",
+        "name": "gnews",
+        "title": "Sudan Army Conducts Airstrike, 56 Dead and 107 Injured",
         "type": "OSINT"
       }
     ]

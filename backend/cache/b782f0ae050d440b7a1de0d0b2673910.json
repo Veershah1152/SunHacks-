@@ -1,67 +1,62 @@
 {
   "query": "Ukraine war",
-  "cached_at": "2026-04-10T02:15:43.064701",
+  "cached_at": "2026-04-10T14:50:03.155782",
   "result": {
     "risk": "MEDIUM",
     "risk_numerical": 60,
     "confidence": 0.8,
     "trajectory": "ESCALATING",
     "location": "Ukraine",
-    "summary": "The ongoing conflict between Ukraine and Russia has led to a significant escalation of tensions, with periodic acts of war diplomacy and the exchange of bodies between the two nations.",
-    "reasoning": "The articles suggest that the conflict is ongoing and has led to a significant escalation of tensions, indicating a medium risk level.",
+    "summary": "A temporary ceasefire has been announced for the Orthodox Easter weekend, but military desertions and fatigue are growing concerns in Ukraine's war-torn country.",
+    "reasoning": "The risk level is assigned as MEDIUM due to the temporary ceasefire announcement, which may provide a brief respite from fighting, but also highlights the ongoing challenges faced by Ukraine's military.",
     "hotspots": [
       {
-        "name": "Donbas region",
-        "lat": 47.83,
-        "lng": 37.5,
+        "name": "Eastern Ukraine",
+        "lat": 48.43,
+        "lng": 36.22,
         "intensity": 8
       }
     ],
     "signals": [
       {
-        "source": "Russian Supreme Court",
-        "text": "Criminalization of Memorial's activities",
+        "source": "Kremlin",
+        "text": "Putin announces 32-hour ceasefire in Russia-Ukraine war for Orthodox Easter weekend",
         "intensity": 0.9
-      },
-      {
-        "source": "Ukrainian and Russian sources",
-        "text": "Exchange of bodies between Ukraine and Russia",
-        "intensity": 0.8
       }
     ],
     "scenarios": {
       "best": {
-        "description": "Ceasefire agreement and diplomatic resolution",
+        "description": "A brief and temporary reduction in violence, followed by a return to fighting",
         "probability": "15%"
       },
       "likely": {
-        "description": "Escalation of violence and further sanctions",
-        "probability": "60%"
+        "description": "An extended ceasefire, potentially leading to negotiations and a peaceful resolution",
+        "probability": "40%"
       },
       "worst": {
-        "description": "Full-scale invasion by Russia",
-        "probability": "25%"
+        "description": "A prolonged and bloody conflict, with little hope for a peaceful resolution",
+        "probability": "45%"
       }
     },
     "civilian_impact": {
       "casualties": "MODERATE",
       "displacement": "Significant displacement expected",
       "shortages": [
-        "Food and medicine",
-        "Legal access"
+        "Food",
+        "Medical supplies"
       ]
     },
     "infrastructure": {
-      "status": "Institutional systems under significant pressure",
+      "status": "Critical infrastructure under threat",
       "chokepoints": [
-        "Economic sanctions",
-        "Media access"
+        "Energy grid",
+        "Transportation networks"
       ]
     },
     "sources": [
       {
         "name": "GNews",
-        "title": "Ukraine War Analysis",
+        "title": "Putin announces 32-hour ceasefire in Russia-Ukraine war for Orthodox Easter weekend",
         "type": "OSINT"
       }
     ],

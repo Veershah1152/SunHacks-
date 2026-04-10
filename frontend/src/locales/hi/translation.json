@@ -1,0 +1,78 @@
+{
+  "system": {
+    "title": "संघर्ष भविष्यवाणी प्रणाली",
+    "logo_text": "CPS",
+    "access_level": "पहुंच: ओमेगा",
+    "uplink_nominal": "अपलिंक सामान्य",
+    "analysing_target": "लक्ष्य का विश्लेषण...",
+    "ingesting_feed": "डेटा प्राप्त हो रहा है...",
+    "awaiting_directive": "निर्देश की प्रतीक्षा",
+    "network_secure": "नेटवर्क: सुरक्षित",
+    "active_session": "सक्रिय_सत्र",
+    "global_sentinel": "ग्लोबल_प्रहरी",
+    "tagline": "सुरक्षित खुफिया लिंक // वास्तविक समय भू-राजनीतिक विश्लेषण"
+  },
+  "sidebar": {
+    "intel_uplink": "खुफिया अपलिंक",
+    "terminate_session": "सत्र समाप्त करें"
+  },
+  "dashboard": {
+    "database": "डेटाबेस",
+    "core": "कोर",
+    "atlas": "एटलस",
+    "network": "नेटवर्क",
+    "persistent": "स्थायी",
+    "synced": "सिंक किया गया",
+    "encrypted": "एन्क्रिप्टेड",
+    "idle_body": "तंत्रिका OSINT पाइपलाइन सक्रिय। प्राथमिक अपलिंक कंसोल से सामरिक निर्देश की प्रतीक्षा। क्षेत्रीय जोखिम मॉडलिंग और संघर्ष पथ विश्लेषण के लिए प्रणाली तैयार।"
+  },
+  "controls": {
+    "analyze": "विश्लेषण करें",
+    "update": "सिंक करें",
+    "placeholder": "क्षेत्र या विषय दर्ज करें (जैसे गाजा, ताइवान)..."
+  },
+  "risk": {
+    "level": "जोखिम स्तर",
+    "low": "कम",
+    "medium": "मध्यम",
+    "high": "उच्च",
+    "trajectory": "प्रक्षेपवक्र"
+  },
+  "login": {
+    "welcome": "स्वागत है कमांडर",
+    "instruction": "अधिकृत क्रेडेंशियल्स का उपयोग करके सुरक्षित अपलिंक शुरू करें",
+    "google_login": "गूगल के साथ अपलिंक",
+    "credentials_login": "क्रेडेंशियल लॉगिन",
+    "bypass_title": "आपातकालीन बाईपास",
+    "bypass_desc": "केवल गूगल एपीआई विफलता के दौरान उपयोग किया जाने वाला प्रोटोकॉल",
+    "bypass_button": "बाईपास शुरू करें"
+  },
+  "intel": {
+    "situation_report": "स्थिति रिपोर्ट // ALPHA_VECTOR",
+    "risk_assessment": "जोखिम मूल्यांकन",
+    "signals_title": "मल्टी-एजेंट सिग्नल डिकोडिंग",
+    "impact_title": "मानवीय और बुनियादी ढांचा",
+    "geospatial_intel": "भू-स्थानिक खुफिया",
+    "confidence_score": "आत्मविश्वास स्कोर",
+    "signal_depth": "सिग्नल गहराई",
+    "evidence_footprint": "साक्ष्य पदचिह्न",
+    "civilian_cost": "नागरिक लागत",
+    "casualty_risk": "हताहत जोखिम",
+    "displacement": "विस्थापन",
+    "impacted_resources": "प्रभावित संसाधन",
+    "operational_assets": "परिचालन संपत्ति",
+    "base_condition": "आधार स्थिति",
+    "critical_chokepoints": "महत्वपूर्ण बाधाएं",
+    "trajectory_over_time": "समय के साथ जोखिम प्रक्षेपवक्र",
+    "scorecard_title": "इंटेलिजेंस स्कोरकार्ड",
+    "matched": "मैच हुआ",
+    "verified_consensus": "सत्यापित आम सहमति",
+    "base_status": "कार्यात्मक",
+    "intensity": "तीव्रता",
+    "no_signals": "वर्तमान सेक्टर में कोई सक्रिय संकेत नहीं मिला।"
+  },
+  "metadata": {
+    "model": "मॉडल",
+    "pipeline": "पाइपलाइन"
+  }
+}

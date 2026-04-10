@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+
 
 /**
  * Sanitize the raw API result so no object/array leaks into a React text node.
@@ -48,7 +50,7 @@ function sanitizeResult(data) {
 
 const IntelligenceContext = createContext(null);
 
-const API = 'http://localhost:8000';
+const API = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export function IntelligenceProvider({ children }) {
   const [query, setQuery] = useState('');
@@ -60,6 +62,9 @@ export function IntelligenceProvider({ children }) {
   const [status, setStatus] = useState('idle');
   const [analysisStep, setAnalysisStep] = useState('ingesting');
   const [autoCycleEnabled, setAutoCycleEnabled] = useState(true);
+  const [cache, setCache] = useState({});
+  const { i18n } = useTranslation();
+
 
   const handleUpdate = useCallback(async () => {
     setUpdating(true);
@@ -72,12 +77,29 @@ export function IntelligenceProvider({ children }) {
       if (!res.ok) throw new Error(`Update failed: ${res.statusText}`);
       setStatus('updated');
       setTimeout(() => setStatus('idle'), 3000);
+      
+      // Clear cache for this term when force-updating
+      if (term) {
+        setCache(prev => {
+          const newCache = { ...prev };
+          delete newCache[term];
+          return newCache;
+        });
+      }
     } catch (err) {
       setError(err.message);
     } finally {
       setUpdating(false);
     }
   }, [query]);
+
+  // Effect to re-analyze when language changes to keep UI & data in sync
+  React.useEffect(() => {
+    if (result && query && !loading && !updating) {
+      console.log(`[i18n] Language changed to ${i18n.language}. Re-analyzing for linguistic consistency.`);
+      handleAnalyze();
+    }
+  }, [i18n.language]); // Triggered on language switch
 
   const handleAnalyze = useCallback(async () => {
     const term = query.trim();
@@ -86,6 +108,17 @@ export function IntelligenceProvider({ children }) {
       return;
     }
 
+    const lang = i18n.language || 'en';
+    const cacheKey = `${term}_${lang}`;
+
+    // Check cache first
+    if (cache[cacheKey]) {
+      console.log(`[Cache] Hits for: ${cacheKey}`);
+      setResult(cache[cacheKey].result);
+      setTrends(cache[cacheKey].trends);
+      setStatus('done');
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -99,10 +132,11 @@ export function IntelligenceProvider({ children }) {
     const progressTimer = setInterval(() => {
       stepIndex = Math.min(stepIndex + 1, steps.length - 1);
       setAnalysisStep(steps[stepIndex]);
-    }, 10000); // ~10s per step = ~80s total for 8 steps
+    }, 10000); 
 
     try {
-      const res = await fetch(`${API}/analyze?query=${encodeURIComponent(term)}`);
+      const res = await fetch(`${API}/analyze?query=${encodeURIComponent(term)}&lang=${lang}`);
+
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.detail || `Server error: ${res.status}`);
@@ -116,8 +150,15 @@ export function IntelligenceProvider({ children }) {
         trendData = tJson.trends || [];
       }
 
-      setResult(sanitizeResult(data));
+      const sanitizedResult = sanitizeResult(data);
+      setResult(sanitizedResult);
       setTrends(trendData);
+
+      // Save to cache
+      setCache(prev => ({
+        ...prev,
+        [cacheKey]: { result: sanitizedResult, trends: trendData }
+      }));
 
       setStatus('done');
     } catch (err) {
@@ -127,7 +168,8 @@ export function IntelligenceProvider({ children }) {
       clearInterval(progressTimer);
       setLoading(false);
     }
-  }, [query]);
+  }, [query, i18n.language, cache]);
+
 
   const value = useMemo(() => ({
     query, setQuery,

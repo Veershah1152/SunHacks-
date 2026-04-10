@@ -1,82 +1,71 @@
 {
-  "query": "Iran war",
-  "cached_at": "2026-04-10T01:59:45.480293",
+  "query": "iran war",
+  "cached_at": "2026-04-10T14:51:13.891585",
   "result": {
     "risk": "MEDIUM",
-    "risk_numerical": 65,
-    "confidence": 0.8,
-    "trajectory": "STABLE",
-    "location": {
-      "type": "Point",
-      "coordinates": [
-        -44.42,
-        30.52
-      ]
-    },
-    "summary": "The Iran war is causing economic uncertainty and recession fears in the US, with a sharp fall in GDP growth to 0.5% in Q4 2025. The ceasefire negotiated by Trump is fragile and may not hold.",
-    "reasoning": "The articles suggest that the Iran war is having a significant impact on the US economy, leading to recession fears and a fragile ceasefire.",
+    "risk_numerical": 60,
+    "confidence": 0.75,
+    "trajectory": "ESCALATING",
+    "location": "Middle East",
+    "latitude": 32.86,
+    "longitude": 35.22,
+    "summary": "The Iran war is causing deflation in China, impacting producers and energy costs, while also affecting the Indian stock market and causing volatility in global markets.",
+    "reasoning": "The articles suggest a medium risk level due to the impact on global markets and economies.",
     "hotspots": [
       {
-        "name": "Middle East",
-        "lat": 30.52,
-        "lng": -44.42,
+        "name": "Gaza",
+        "lat": 31.53,
+        "lng": 34.44,
         "intensity": 8
       }
     ],
     "signals": [
       {
-        "source": "US Bureau of Economic Analysis",
-        "text": "Sharp fall in US GDP growth to 0.5% in Q4 2025",
+        "source": "US President Donald Trump",
+        "text": "The US is at war with Iran",
         "intensity": 0.9
       },
       {
-        "source": "Daily Mail JL Partners poll",
-        "text": "American voters are cautiously embracing Trump's fragile ceasefire with Iran",
+        "source": "Palestinian Ambassador to India",
+        "text": "The ceasefire in Iran is a facade",
         "intensity": 0.8
       }
     ],
     "scenarios": {
       "best": {
-        "description": "Iran war ends in a negotiated ceasefire",
+        "description": "A fragile peace holds, with minimal casualties and displacement",
         "probability": "15%"
       },
       "likely": {
-        "description": "Iran war escalates into full-scale conflict",
+        "description": "A stalemate ensues, with ongoing tensions and potential for escalation",
         "probability": "60%"
       },
       "worst": {
-        "description": "Iran war leads to global economic collapse",
+        "description": "A full-scale conflict breaks out, causing widespread destruction and loss of life",
         "probability": "25%"
       }
     },
     "civilian_impact": {
       "casualties": "MODERATE",
-      "displacement": "Significant displacement expected in the Middle East",
+      "displacement": "Significant displacement expected in Gaza",
       "shortages": [
-        "Fuel",
+        "Medical supplies",
         "Food"
       ]
     },
     "infrastructure": {
       "status": "Critical infrastructure under threat",
       "chokepoints": [
-        "Oil supplies",
-        "Global financial markets"
+        "Oil refineries",
+        "Transportation hubs"
       ]
     },
     "sources": [
       {
-        "name": "US Bureau of Economic Analysis",
-        "title": "US GDP growth crashes to 0.5% in Q4 2025",
-        "type": "OSINT"
-      },
-      {
-        "name": "Daily Mail JL Partners poll",
-        "title": "Americans reveal their verdict on Trump's shaky ceasefire with Iran and whether it'll last",
+        "name": "GNews",
+        "title": "Trump bashes popular right-wing commentators for criticizing Iran war",
         "type": "OSINT"
       }
-    ],
-    "latitude": 0.0,
-    "longitude": 0.0
+    ]
   }
 }

@@ -1,11 +1,13 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
-export default function SignalsCard({ result, loading }) {
+const SignalsCard = React.memo(function SignalsCard({ result, loading }) {
+  const { t } = useTranslation();
   const signals = result?.signals || [];
 
   return (
     <div className="intel-card">
-      <div className="card-label">Multi-Agent Signal Decoding</div>
+      <div className="card-label">{t('intel.signals_title')}</div>
 
       <div style={{ display: 'flex', flexDirection: 'column', marginTop: '16px' }}>
         {loading ? (
@@ -23,7 +25,7 @@ export default function SignalsCard({ result, loading }) {
                 </div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '12px' }}>
-                <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', fontWeight: 700 }}>INTENSITY</div>
+                <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', fontWeight: 700 }}>{t('intel.intensity')}</div>
                 <div style={{ fontWeight: 800, color: sig.intensity > 0.7 ? 'var(--risk-high-on)' : 'var(--primary)', fontFamily: 'var(--font-display)' }}>
                   {Math.round(sig.intensity * 100)}%
                 </div>
@@ -32,10 +34,12 @@ export default function SignalsCard({ result, loading }) {
           ))
         ) : (
           <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>
-            No active signals detected in current vector.
+            {t('intel.no_signals')}
           </div>
         )}
       </div>
     </div>
   );
-}
+});
+
+export default SignalsCard;

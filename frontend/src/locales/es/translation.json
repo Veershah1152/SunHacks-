@@ -1,0 +1,78 @@
+{
+  "system": {
+    "title": "SISTEMA DE PREDICCIÓN DE CONFLICTOS",
+    "logo_text": "CPS",
+    "access_level": "Acceso: OMEGA",
+    "uplink_nominal": "ENLACE NOMINAL",
+    "analysing_target": "ANALIZANDO OBJETIVO...",
+    "ingesting_feed": "INGIRIENDO DATOS...",
+    "awaiting_directive": "ESPERANDO DIRECTIVA",
+    "network_secure": "RED: SEGURA",
+    "active_session": "SESIÓN_ACTIVA",
+    "global_sentinel": "CENTINELA_GLOBAL",
+    "tagline": "ENLACE DE INTELIGENCIA SEGURO // ANÁLISIS GEOPOLÍTICO EN TIEMPO REAL"
+  },
+  "sidebar": {
+    "intel_uplink": "ENLACE DE INTELIGENCIA",
+    "terminate_session": "Terminar Sesión"
+  },
+  "dashboard": {
+    "database": "Base de Datos",
+    "core": "Núcleo",
+    "atlas": "Atlas",
+    "network": "Red",
+    "persistent": "PERSISTENTE",
+    "synced": "SINCRONIZADO",
+    "encrypted": "ENCRIPTADO",
+    "idle_body": "Tubería de OSINT neuronal operativa. Esperando directiva táctica desde la consola principal. Sistema preparado para modelado de riesgo regional y análisis de trayectoria de conflictos."
+  },
+  "controls": {
+    "analyze": "EJECUTAR ANÁLISIS",
+    "update": "SINCRONIZAR DATOS",
+    "placeholder": "Ingrese Región o Tema (ej. Gaza, Taiwán)..."
+  },
+  "risk": {
+    "level": "NIVEL DE RIESGO",
+    "low": "BAJO",
+    "medium": "MEDIO",
+    "high": "ALTO",
+    "trajectory": "TRAYECTORIA"
+  },
+  "login": {
+    "welcome": "BIENVENIDO COMANDANTE",
+    "instruction": "Inicie enlace seguro usando credenciales autorizadas",
+    "google_login": "ENLACE CON GOOGLE",
+    "credentials_login": "INICIO CON CREDENCIALES",
+    "bypass_title": "DERIVACIÓN DE EMERGENCIA",
+    "bypass_desc": "Protocolo usado solo durante fallo de API de Google",
+    "bypass_button": "INICIAR DERIVACIÓN"
+  },
+  "intel": {
+    "situation_report": "INFORME DE SITUACIÓN // ALPHA_VECTOR",
+    "risk_assessment": "EVALUACIÓN DE RIESGO",
+    "signals_title": "DECODIFICACIÓN DE SEÑALES MULTI-AGENTE",
+    "impact_title": "HUMANITARIO E INFRAESTRUCTURA",
+    "geospatial_intel": "INTELIGENCIA GEOESPACIAL",
+    "confidence_score": "PUNTAJE DE CONFIANZA",
+    "signal_depth": "PROFUNDIDAD DE SEÑAL",
+    "evidence_footprint": "HUELLA DE EVIDENCIA",
+    "civilian_cost": "COSTO CIVIL",
+    "casualty_risk": "RIESGO DE BIKES",
+    "displacement": "DESPLAZAMIENTO",
+    "impacted_resources": "RECURSOS AFECTADOS",
+    "operational_assets": "ACTIVOS OPERATIVOS",
+    "base_condition": "CONDICIÓN DE BASE",
+    "critical_chokepoints": "PUNTOS CRÍTICOS DE ESTRANGULAMIENTO",
+    "trajectory_over_time": "TRAYECTORIA DE RIESGO EN EL TIEMPO",
+    "scorecard_title": "TARJETA de INTELIGENCIA",
+    "matched": "COINCIDENCIA",
+    "verified_consensus": "CONSENSO VERIFICADO",
+    "base_status": "FUNCIONAL",
+    "intensity": "INTENSIDAD",
+    "no_signals": "No se detectaron señales activas en el vector actual."
+  },
+  "metadata": {
+    "model": "MODELO",
+    "pipeline": "TUBERÍA"
+  }
+}

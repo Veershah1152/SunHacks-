@@ -460,31 +460,23 @@ h1,h2,h3,h4,h5,.display { font-family: var(--font-display); letter-spacing: -0.0
 
 /* ── Intelligence Cards ── */
 .intel-card {
-  background: rgba(22, 23, 26, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(26, 27, 30, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.03);
   border-radius: var(--radius-xl);
   padding: 24px;
   position: relative;
   overflow: hidden;
   transition: var(--transition);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-}
-
-.intel-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
 }
 
 .intel-card:hover {
-  background: rgba(29, 31, 35, 0.8);
-  border-color: rgba(0, 229, 255, 0.2);
-  transform: translateY(-4px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  background: rgba(31, 32, 35, 0.6);
+  border-color: rgba(0, 229, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
 }
 
 
@@ -785,14 +777,122 @@ h1,h2,h3,h4,h5,.display { font-family: var(--font-display); letter-spacing: -0.0
   gap: 10px;
 }
 
-/* Bottom accent line */
-.vertex-accent-line {
+/* ── HUD & Tactical Effects ── */
+.crt-overlay {
   position: fixed;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.05) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.01), rgba(0, 255, 0, 0.005), rgba(0, 0, 255, 0.01));
+  background-size: 100% 3px, 3px 100%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.08; /* Reduced from 0.15 */
+}
+
+.crt-flicker {
+  animation: crt-flicker 4s infinite; /* Slowed down from 0.15s */
+}
+
+@keyframes crt-flicker {
+  0% { opacity: 1; }
+  50% { opacity: 0.98; }
+  100% { opacity: 1; }
+}
+
+.scanline {
+  position: absolute;
+  width: 100%;
+  height: 100px;
+  background: linear-gradient(to bottom, rgba(0,229,255,0) 0%, rgba(0,229,255,0.03) 50%, rgba(0,229,255,0) 100%);
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+@keyframes scanline {
+  0% { top: -100px; }
+  100% { top: 100%; }
+}
+
+/* ── Intelligence Ticker ── */
+.intel-ticker {
+  position: fixed;
+  bottom: 0px;
   left: var(--sidebar-w);
   right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--primary), transparent);
-  transition: opacity 0.4s;
-  pointer-events: none;
+  background: rgba(5,6,8,0.9);
+  border-top: 1px solid rgba(0,229,255,0.1);
+  height: 24px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  font-family: monospace;
+  font-size: 0.6rem;
+  color: var(--primary);
+  opacity: 0.6;
+}
+
+.ticker-track {
+  display: flex;
+  white-space: nowrap;
+  animation: ticker-move 60s linear infinite;
+}
+
+@keyframes ticker-move {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-item {
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ticker-item::before {
+  content: '[';
+}
+.ticker-item::after {
+  content: ']';
+}
+
+/* ── Tactical Animations ── */
+.glitch-text:hover {
+  animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite;
+}
+
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+/* Print Overrides for Dossier */
+@media print {
+  .vertex-sidebar, .vertex-topbar, .crt-overlay, .scanline, .intel-ticker {
+    display: none !important;
+  }
+  .vertex-shell {
+    display: block !important;
+    height: auto !important;
+  }
+  .vertex-main {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+  .intel-card {
+    break-inside: avoid;
+    border: 1px solid #000 !important;
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+  }
+  .card-label, .control-label {
+    color: #000 !important;
+    border-bottom: 2px solid #000;
+  }
 }
