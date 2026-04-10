@@ -225,6 +225,7 @@ class StoreManager:
             **sql_stats,
             "vector_count":     self.faiss.vector_count(),
             "faiss_ready":      self.faiss.is_ready(),
+            "atlas_ready":      self.mongo.is_enabled
         }
 
     # ─── Maintenance ───────────────────────────────────────────────────────

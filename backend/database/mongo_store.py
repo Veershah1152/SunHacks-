@@ -33,7 +33,10 @@ try:
         ServerSelectionTimeoutError,
     )
     _PYMONGO_AVAILABLE = True
-except ImportError:
+except Exception as e:
+    import traceback
+    print(f"[MongoDB] Import failed: {e}")
+    # traceback.print_exc()
     _PYMONGO_AVAILABLE = False
 
 
@@ -72,10 +75,9 @@ class MongoStore:
         if not _PYMONGO_AVAILABLE:
             print("[MongoDB] pymongo not installed — Atlas sync disabled.")
             return False
-
+        
         uri = os.getenv("MONGO_URI", "").strip()
         if not uri:
-            print("[MongoDB] MONGO_URI not set — running in SQLite-only mode.")
             return False
 
         try:
