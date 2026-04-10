@@ -69,14 +69,15 @@ class SQLiteStore:
             );
 
             CREATE TABLE IF NOT EXISTS analysis_history (
-                id           INTEGER PRIMARY KEY AUTOINCREMENT,
-                query        TEXT NOT NULL,
-                risk         TEXT NOT NULL,
-                confidence   REAL NOT NULL,
-                location     TEXT,
-                latitude     REAL,
-                longitude    REAL,
-                timestamp    TEXT NOT NULL
+                id             INTEGER PRIMARY KEY AUTOINCREMENT,
+                query          TEXT NOT NULL,
+                risk           TEXT NOT NULL,
+                risk_numerical INTEGER DEFAULT 50,
+                confidence     REAL NOT NULL,
+                location       TEXT,
+                latitude       REAL,
+                longitude      REAL,
+                timestamp      TEXT NOT NULL
             );
 
             CREATE INDEX IF NOT EXISTS idx_history_query ON analysis_history(query);
@@ -166,6 +167,7 @@ class SQLiteStore:
         self,
         query: str,
         risk: str,
+        risk_numerical: int,
         confidence: float,
         location: str,
         lat: float | None = None,
@@ -173,12 +175,18 @@ class SQLiteStore:
     ) -> None:
         """Save a conflict analysis result to the history table."""
         now = datetime.now(timezone.utc).isoformat()
+        # Add column if it doesn't exist yet (migration for existing DBs)
+        try:
+            self.conn.execute("ALTER TABLE analysis_history ADD COLUMN risk_numerical INTEGER DEFAULT 50")
+            self.conn.commit()
+        except Exception:
+            pass  # Column already exists
         self.conn.execute(
             """
-            INSERT INTO analysis_history (query, risk, confidence, location, latitude, longitude, timestamp)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO analysis_history (query, risk, risk_numerical, confidence, location, latitude, longitude, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (query, risk, confidence, location, lat, lng, now),
+            (query, risk, risk_numerical, confidence, location, lat, lng, now),
         )
         self.conn.commit()
 
@@ -232,7 +240,7 @@ class SQLiteStore:
         """Return historical risk/confidence for a specific query."""
         rows = self.conn.execute(
             """
-            SELECT risk, confidence, timestamp FROM analysis_history
+            SELECT risk, risk_numerical, confidence, timestamp FROM analysis_history
             WHERE query = ?
             ORDER BY timestamp DESC
             LIMIT ?
@@ -241,7 +249,7 @@ class SQLiteStore:
         ).fetchall()
         
         # Reverse to get chronological order
-        return [{"risk": r[0], "confidence": r[1], "ts": r[2]} for r in reversed(rows)]
+        return [{"risk": r[0], "risk_numerical": r[1] or 50, "confidence": r[2], "ts": r[3]} for r in reversed(rows)]
 
 
     # ─── Maintenance ───────────────────────────────────────────────────────

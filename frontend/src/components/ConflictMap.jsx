@@ -13,9 +13,9 @@ L.Icon.Default.mergeOptions({
 
 const getRiskColor = (risk) => {
   const r = risk?.toUpperCase() || 'MEDIUM';
-  if (r === 'HIGH' || r === 'CRITICAL') return '#ff1744';
-  if (r === 'MEDIUM') return '#ffa726';
-  return '#00e676'; // Low
+  if (r === 'HIGH' || r === 'CRITICAL') return '#c31e00';
+  if (r === 'MEDIUM') return '#ffa000';
+  return '#00de72'; // Low
 }
 
 function ChangeView({ center }) {
@@ -31,76 +31,99 @@ export default function ConflictMap({ location, lat, lng, risk, hotspots = [] })
   const riskColor = getRiskColor(risk)
 
   return (
-    <div className="card map-card" style={{ position: 'relative' }}>
-      <div className="card-header">
-        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-             <h3 style={{ margin: 0 }}>🛰️ Tactical Map</h3>
-             <span className="risk-badge" style={{ background: riskColor }}>{risk || 'PENDING'}</span>
+    <div className="kinetic-card" style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '0', overflow: 'hidden' }}>
+      <div style={{ padding: '24px', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000, pointerEvents: 'none' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div style={{ 
+            background: 'var(--surface-low)', 
+            padding: '12px 16px', 
+            borderRadius: 'var(--radius-lg)', 
+            border: '1px solid var(--glass-border)',
+            pointerEvents: 'auto',
+            backdropFilter: 'blur(8px)'
+          }}>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+               <h4 style={{ margin: 0, fontFamily: 'var(--font-head)', fontSize: '0.8rem', color: 'var(--primary)', letterSpacing: '0.05em' }}>
+                 GEOSPATIAL INTEL
+               </h4>
+               <span style={{ 
+                 fontSize: '0.65rem', 
+                 background: `${riskColor}33`, 
+                 color: riskColor, 
+                 padding: '2px 8px', 
+                 borderRadius: '4px',
+                 fontWeight: 800
+               }}>
+                 {risk || 'PENDING'}
+               </span>
+            </div>
           </div>
-          <span className="location-label" style={{ opacity: 0.8 }}>{location || 'Global View'}</span>
+          
+          <div style={{ 
+            background: 'var(--surface-low)', 
+            padding: '12px 16px', 
+            borderRadius: 'var(--radius-lg)', 
+            border: '1px solid var(--glass-border)',
+            pointerEvents: 'auto',
+            backdropFilter: 'blur(8px)',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            textTransform: 'uppercase'
+          }}>
+            📍 {typeof location === 'string' ? location : 'GLOBAL VIEW'}
+          </div>
         </div>
       </div>
 
-      <div className="map-container" style={{ position: 'relative' }}>
+      <div style={{ flex: 1, position: 'relative' }}>
         <MapContainer 
           center={position} 
           zoom={4} 
-          scrollWheelZoom={false}
-          style={{ height: '400px', width: '100%', borderRadius: '12px' }}
+          scrollWheelZoom={true}
+          style={{ height: '100%', width: '100%' }}
         >
-          {/* Map Controls */}
           <LayersControl position="topright">
             <LayersControl.BaseLayer checked name="Modern Dark">
               <TileLayer
-                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                 attribution='&copy; CARTO'
                  url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
               />
             </LayersControl.BaseLayer>
-            <LayersControl.BaseLayer name="Satellite imagery">
+            <LayersControl.BaseLayer name="Satellite">
               <TileLayer
-                attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EBP, and the GIS User Community'
+                attribution='&copy; Esri'
                 url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-              />
-            </LayersControl.BaseLayer>
-            <LayersControl.BaseLayer name="Terrain View">
-              <TileLayer
-                attribution='&copy; OpenStreetMap contributors'
-                url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
               />
             </LayersControl.BaseLayer>
           </LayersControl>
 
-          {/* Main Conflict Marker */}
           {(lat && lng) && (
             <Marker position={position}>
               <Popup>
-                <div style={{ color: '#0f172a' }}>
+                <div style={{ fontFamily: 'var(--font-body)', padding: '4px' }}>
                     <strong style={{ color: riskColor }}>RISK: {risk}</strong> <br />
-                    <strong>{location}</strong>
+                    <span style={{ fontSize: '0.9rem' }}>{location}</span>
                 </div>
               </Popup>
             </Marker>
           )}
 
-          {/* Pulsing Hotspots */}
           {hotspots?.map((spot, idx) => (
             <CircleMarker
               key={`spot-${idx}`}
               center={[spot.lat, spot.lng]}
               radius={6 + (spot.intensity || 5) * 2.5}
               pathOptions={{
-                fillColor: (spot.intensity || 5) > 7 ? '#ff1744' : '#ffa726',
+                fillColor: (spot.intensity || 5) > 7 ? 'var(--risk-high)' : 'var(--risk-medium)',
                 color: '#fff',
-                fillOpacity: 0.5,
-                weight: 2,
-                className: 'pulse-marker' 
+                fillOpacity: 0.4,
+                weight: 1.5,
               }}
             >
               <Popup>
-                <div style={{ color: '#0f172a' }}>
+                <div style={{ fontFamily: 'var(--font-body)', padding: '4px' }}>
                     <strong>{spot.name}</strong> <br />
-                    <span>Activity Intensity: {spot.intensity}/10</span>
+                    <span>INTENSITY: {spot.intensity}/10</span>
                 </div>
               </Popup>
             </CircleMarker>
@@ -109,18 +132,28 @@ export default function ConflictMap({ location, lat, lng, risk, hotspots = [] })
           <ChangeView center={position} />
         </MapContainer>
 
-        {/* Tactical Legend Overlay */}
-        <div className="map-legend">
-           <div className="legend-item">
-              <div className="legend-dot" style={{ background: '#ff1744', boxShadow: '0 0 8px #ff1744' }}></div>
-              <span>Severe Activity</span>
+        {/* Tactical Legend */}
+        <div style={{ 
+          position: 'absolute', 
+          bottom: '24px', 
+          right: '24px', 
+          zIndex: 1000,
+          background: 'var(--surface-low)',
+          padding: '16px',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--glass-border)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px'
+        }}>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.7rem' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--risk-high)', boxShadow: '0 0 8px var(--risk-high)' }}></div>
+              <span>ESCALATING</span>
            </div>
-           <div className="legend-item">
-              <div className="legend-dot" style={{ background: '#ffa726', boxShadow: '0 0 8px #ffa726' }}></div>
-              <span>Rising Tensions</span>
-           </div>
-           <div style={{ marginTop: '8px', opacity: 0.6, fontSize: '0.7rem' }}>
-              Scale: 0-10 Intensity
+           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.7rem' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--risk-medium)', boxShadow: '0 0 8px var(--risk-medium)' }}></div>
+              <span>RISING TENSION</span>
            </div>
         </div>
       </div>

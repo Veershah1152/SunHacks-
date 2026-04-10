@@ -1,0 +1,65 @@
+{
+  "query": "india",
+  "cached_at": "2026-04-10T05:19:09.592979",
+  "result": {
+    "risk": "MEDIUM",
+    "risk_numerical": 60,
+    "confidence": 0.8,
+    "trajectory": "STABLE",
+    "location": "Global",
+    "summary": "India has seen record-high polling percentages in Puducherry, with a historic 89.87% turnout, while also experiencing poll-related violence in Assam and disruptions in energy supply due to conflicts in the Middle East.",
+    "reasoning": "The high polling percentage in Puducherry suggests a stable political environment, but the presence of poll-related violence in Assam indicates potential instability.",
+    "hotspots": [
+      {
+        "name": "Puducherry",
+        "lat": 12.83,
+        "lng": 80.27,
+        "intensity": 8
+      }
+    ],
+    "signals": [
+      {
+        "source": "PTI",
+        "text": "Record-high polling percentage of 89.87% in Puducherry",
+        "intensity": 0.9
+      }
+    ],
+    "scenarios": {
+      "best": {
+        "description": "Increased political stability and economic growth",
+        "probability": "30%"
+      },
+      "likely": {
+        "description": "Moderate political instability with potential for economic growth",
+        "probability": "50%"
+      },
+      "worst": {
+        "description": "Significant political instability and economic downturn",
+        "probability": "20%"
+      }
+    },
+    "civilian_impact": {
+      "casualties": "LOW",
+      "displacement": "Minimal displacement expected",
+      "shortages": [
+        "Energy supply"
+      ]
+    },
+    "infrastructure": {
+      "status": "Institutional systems under pressure",
+      "chokepoints": [
+        "Energy supply",
+        "Legal system"
+      ]
+    },
+    "sources": [
+      {
+        "name": "PTI",
+        "title": "Assembly polls: Puducherry records historic 89.87 polling percentage; highest ever",
+        "type": "OSINT"
+      }
+    ],
+    "latitude": 0.0,
+    "longitude": 0.0
+  }
+}

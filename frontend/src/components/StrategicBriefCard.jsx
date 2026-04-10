@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion'
+import React from 'react';
+import { motion } from 'framer-motion';
 
 export default function StrategicBriefCard({ result, loading }) {
   if (loading || !result) return null;
@@ -8,27 +9,28 @@ export default function StrategicBriefCard({ result, loading }) {
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="card brief-card"
-      style={{
-        background: 'linear-gradient(135deg, rgba(30,41,59,0.9), rgba(15,23,42,0.9))',
-        border: '1px solid rgba(0,212,255,0.15)',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-        padding: '24px',
-        borderRadius: '16px',
-        marginBottom: '20px'
-      }}
+      className="kinetic-card"
+      style={{ borderLeft: '4px solid var(--primary)' }}
     >
-      <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
-        <div style={{ fontSize: '32px', filter: 'drop-shadow(0 0 10px rgba(0,212,255,0.5))' }}>📜</div>
+      <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+        <div style={{ fontSize: '2.5rem', opacity: 0.9 }}>📜</div>
         <div style={{ flex: 1 }}>
-          <h4 style={{ margin: 0, color: 'var(--accent-blue)', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: '8px' }}>
-             Strategic Reasoning & Consensus
+          <h4 style={{ 
+            fontFamily: 'var(--font-head)',
+            color: 'var(--primary)', 
+            textTransform: 'uppercase', 
+            fontSize: '0.8rem', 
+            letterSpacing: '0.1em', 
+            marginBottom: '10px' 
+          }}>
+             STRATEGIC BRIEF & CONSENSUS
           </h4>
           <p style={{ 
-            fontSize: '1.1rem', 
-            fontWeight: 500, 
+            fontSize: '1.25rem', 
+            fontWeight: 400, 
             lineHeight: 1.6, 
-            color: '#e2e8f0',
+            color: 'white',
+            fontFamily: 'var(--font-body)',
             margin: 0
            }}>
              {reasoning}
@@ -36,5 +38,5 @@ export default function StrategicBriefCard({ result, loading }) {
         </div>
       </div>
     </motion.div>
-  )
+  );
 }

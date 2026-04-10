@@ -1,102 +1,67 @@
-function SkeletonBlock({ h = '20px', w = '100%', mb = '0' }) {
-  return (
-    <div className="skeleton" style={{ height: h, width: w, marginBottom: mb, borderRadius: '6px' }} />
-  )
-}
-
-const SIGNAL_COLORS = [
-  ['rgba(255,64,64,0.12)',   '#ff6060'],
-  ['rgba(255,140,0,0.12)',   '#ffaa44'],
-  ['rgba(0,212,255,0.10)',   '#00d4ff'],
-  ['rgba(123,94,167,0.15)',  '#b09fd8'],
-  ['rgba(0,230,118,0.10)',   '#00e676'],
-  ['rgba(255,64,64,0.10)',   '#ff8080'],
-  ['rgba(0,212,255,0.08)',   '#66ccff'],
-]
+import React from 'react';
 
 export default function SignalsCard({ result, loading }) {
-  const signals = result?.signals || []
-
-  const S = {
-    card: { padding: '24px 28px' },
-    header: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: '18px',
-    },
-    title: {
-      fontSize: '0.68rem',
-      fontWeight: 700,
-      color: '#3d5080',
-      textTransform: 'uppercase',
-      letterSpacing: '0.12em',
-    },
-    count: {
-      fontSize: '0.75rem',
-      color: '#00d4ff',
-      fontWeight: 600,
-      background: 'rgba(0,212,255,0.1)',
-      padding: '3px 10px',
-      borderRadius: '20px',
-    },
-    tagsWrap: {
-      display: 'flex',
-      gap: '10px',
-      flexWrap: 'wrap',
-    },
-    tag: (i) => ({
-      background: SIGNAL_COLORS[i % SIGNAL_COLORS.length][0],
-      border: `1px solid ${SIGNAL_COLORS[i % SIGNAL_COLORS.length][1]}44`,
-      borderRadius: '8px',
-      padding: '8px 14px',
-      fontSize: '0.83rem',
-      color: SIGNAL_COLORS[i % SIGNAL_COLORS.length][1],
-      fontWeight: 500,
-      display: 'flex',
-      alignItems: 'center',
-      gap: '6px',
-      transition: 'transform 0.15s',
-      cursor: 'default',
-    }),
-    empty: {
-      fontSize: '0.85rem',
-      color: '#3d5080',
-      fontStyle: 'italic',
-    },
-  }
+  const signals = result?.signals || [];
 
   return (
-    <div className="glass-card" style={S.card}>
-      <div style={S.header}>
-        <span style={S.title}>Detected Conflict Signals</span>
-        {!loading && result && (
-          <span style={S.count}>{signals.length} signals</span>
-        )}
+    <div className="kinetic-card">
+      <div style={{ marginBottom: '24px' }}>
+        <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-head)', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.05em' }}>
+          MULTI-AGENT SIGNAL DECODING
+        </span>
       </div>
 
-      {loading ? (
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          {[120, 90, 140, 100, 110].map((w, i) => (
-            <SkeletonBlock key={i} h="36px" w={`${w}px`} />
-          ))}
-        </div>
-      ) : signals.length > 0 ? (
-        <div style={S.tagsWrap}>
-          {signals.map((signal, i) => (
-            <span
-              key={i}
-              style={S.tag(i)}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.04)')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {loading ? (
+          [1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: '60px', borderRadius: 'var(--radius-lg)' }} />)
+        ) : signals.length > 0 ? (
+          signals.map((sig, i) => (
+            <div 
+              key={i} 
+              style={{ 
+                padding: '16px', 
+                background: 'var(--surface-low)', 
+                border: '1px solid var(--glass-border)',
+                borderRadius: 'var(--radius-lg)',
+                display: 'flex',
+                gap: '16px',
+                alignItems: 'center'
+              }}
             >
-              ⚡ {signal}
-            </span>
-          ))}
-        </div>
-      ) : (
-        <p style={S.empty}>No signals detected in current analysis.</p>
-      )}
+              <div style={{ 
+                width: '40px', 
+                height: '40px', 
+                background: i % 2 === 0 ? 'var(--primary-container)' : 'rgba(255,255,255,0.05)',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.2rem'
+              }}>
+                {sig.type === 'social' ? '🐦' : sig.type === 'news' ? '📰' : '📡'}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '4px', textTransform: 'uppercase' }}>
+                  {sig.source || 'INTEL_STREAM'}
+                </div>
+                <div style={{ fontSize: '0.95rem', color: 'white', lineHeight: 1.4 }}>
+                  {sig.text}
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '0.7rem', color: '#7a8089' }}>INTENSITY</div>
+                <div style={{ fontWeight: 800, color: sig.intensity > 0.7 ? 'var(--risk-high)' : 'var(--primary)' }}>
+                  {Math.round(sig.intensity * 100)}%
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#7a8089', fontSize: '0.9rem' }}>
+            No active signals detected in current vector.
+          </div>
+        )}
+      </div>
     </div>
-  )
+  );
 }

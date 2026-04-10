@@ -1,38 +1,143 @@
 """
-CrewRunner — orchestrates the 4-agent CrewAI pipeline.
-
-Pipeline flow (sequential):
-  1. IngestionAgent    → extract facts + fuse multi-source signals
-  2. DetectionAgent    → identify hotspots + spatial coordinates
-  3. RiskScoringAgent  → assign 0-100 score + reasoning
-  4. TrendAnalysisAgent → evaluate trajectory (Escalating/Stable/De-escalating)
-  5. SimulationAgent   → generate probabilistic "what-if" scenarios
-  6. CivilianImpactAgent → model casualties, displacement & resource risk
-  7. ImpactAnalysisAgent → evaluate infrastructure & economic damage
-  8. BriefingAgent      → compile all into a Commander-Grade Brief (JSON)
-
-The final output is parsed and validated.  A robust fallback is returned
-if JSON parsing fails (LLM hallucinated formatting).
+FastPipeline — Single-shot LLM analysis.
+Optimized for local Ollama (llama3.2) to reliably produce structured JSON.
 """
 
 import json
 import re
+import os
+import requests
 from langchain_core.documents import Document
-from crewai import Task, Crew, Process, LLM
+from pipeline.cache_manager import analysis_cache
 
-from agents.ingestion_agent      import create_ingestion_agent
-from agents.detection_agent      import create_detection_agent
-from agents.risk_scoring_agent   import create_risk_scoring_agent
-from agents.trend_analysis_agent import create_trend_analysis_agent
-from agents.simulation_agent     import create_simulation_agent
-from agents.civilian_impact_agent import create_civilian_impact_agent
-from agents.impact_analysis_agent import create_impact_analysis_agent
-from agents.briefing_agent       import create_briefing_agent
+_MAX_CONTEXT_CHARS = 3000
+_OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+_LLM_MODEL = os.getenv("LLM_MODEL", "llama3.2")
 
 
-# Maximum characters of retrieved context passed to the LLM
-# (keeps latency within the 10-second target)
-_MAX_CONTEXT_CHARS = 4000
+def _call_ollama(prompt: str, timeout: int = 180) -> str:
+    """Direct Ollama API call — bypasses CrewAI overhead."""
+    try:
+        response = requests.post(
+            f"{_OLLAMA_BASE_URL}/api/generate",
+            json={
+                "model": _LLM_MODEL,
+                "prompt": prompt,
+                "stream": False,
+                "options": {
+                    "temperature": 0.05,   # Very low for deterministic JSON
+                    "num_predict": 1500,
+                    "top_p": 0.9,
+                    "repeat_penalty": 1.1,
+                    "stop": ["\n\nNote:", "\n\nExplanation:", "```"]
+                }
+            },
+            timeout=timeout
+        )
+        response.raise_for_status()
+        return response.json().get("response", "")
+    except requests.exceptions.Timeout:
+        print(f"[Pipeline] LLM call timed out after {timeout}s")
+        return ""
+    except Exception as e:
+        print(f"[Pipeline] LLM call failed: {e}")
+        return ""
+
+
+def _build_master_prompt(query: str, context: str) -> str:
+    """
+    Build a tight, example-driven prompt that local LLMs can follow reliably.
+    Uses a filled-in example to show the model exactly what format is expected.
+    """
+    return f"""You are an intelligence analyst. Read the articles below about "{query}" and produce a JSON analysis.
+
+ARTICLES:
+{context}
+
+Based ONLY on the articles above, fill in this JSON template. Replace every value with your real analysis of "{query}":
+
+{{
+  "risk": "MEDIUM",
+  "risk_numerical": 55,
+  "confidence": 0.72,
+  "trajectory": "STABLE",
+  "location": "United States",
+  "latitude": 37.09,
+  "longitude": -95.71,
+  "summary": "Write 2-3 sentences summarizing the key findings from the articles about {query}.",
+  "reasoning": "Explain in 1-2 sentences why you assigned this risk level.",
+  "hotspots": [
+    {{"name": "Key Location", "lat": 40.71, "lng": -74.00, "intensity": 6}}
+  ],
+  "signals": [
+    {{"source": "Source Name", "text": "Key event or development from the articles", "intensity": 0.7}}
+  ],
+  "scenarios": {{
+    "best": {{"description": "Most optimistic realistic outcome", "probability": "25%"}},
+    "likely": {{"description": "Most probable outcome based on current trends", "probability": "55%"}},
+    "worst": {{"description": "Worst realistic outcome", "probability": "20%"}}
+  }},
+  "civilian_impact": {{
+    "casualties": "LOW",
+    "displacement": "Minimal displacement expected",
+    "shortages": ["Information", "Legal Access"]
+  }},
+  "infrastructure": {{
+    "status": "Institutional systems under pressure",
+    "chokepoints": ["Legal system", "Media access"]
+  }},
+  "sources": [
+    {{"name": "Publisher", "title": "Article headline", "type": "OSINT"}}
+  ]
+}}
+
+CRITICAL RULES:
+1. Output ONLY the JSON. No text before or after it.
+2. Do NOT copy the example values. Use values that reflect "{query}" from the articles.
+3. risk_numerical must be a NUMBER between 0 and 100. Use 70-100 for HIGH risk, 31-69 for MEDIUM, 0-30 for LOW.
+4. confidence must be a NUMBER between 0.0 and 1.0.
+5. latitude and longitude must be real coordinates for the primary location.
+6. All text must describe "{query}" specifically, not generic conflicts."""
+
+
+def _extract_numbers_from_text(text: str, query: str) -> dict:
+    """
+    Emergency fallback: scrape any numeric risk/confidence values
+    directly from the LLM text if JSON parsing fails completely.
+    """
+    result = {}
+
+    # Try to find risk_numerical
+    risk_num_match = re.search(r'"risk_numerical"\s*:\s*(\d+)', text)
+    if risk_num_match:
+        result['risk_numerical'] = int(risk_num_match.group(1))
+
+    # Try to find confidence
+    conf_match = re.search(r'"confidence"\s*:\s*([\d.]+)', text)
+    if conf_match:
+        result['confidence'] = float(conf_match.group(1))
+
+    # Try to find risk level
+    risk_match = re.search(r'"risk"\s*:\s*"(HIGH|MEDIUM|LOW)"', text, re.IGNORECASE)
+    if risk_match:
+        result['risk'] = risk_match.group(1).upper()
+
+    # Try to find trajectory
+    traj_match = re.search(r'"trajectory"\s*:\s*"(ESCALATING|STABLE|DE-ESCALATING)"', text, re.IGNORECASE)
+    if traj_match:
+        result['trajectory'] = traj_match.group(1).upper()
+
+    # Try to find location
+    loc_match = re.search(r'"location"\s*:\s*"([^"]+)"', text)
+    if loc_match:
+        result['location'] = loc_match.group(1)
+
+    # Try to find summary
+    sum_match = re.search(r'"summary"\s*:\s*"([^"]+)"', text)
+    if sum_match:
+        result['summary'] = sum_match.group(1)
+
+    return result
 
 
 def run_analysis(
@@ -41,275 +146,268 @@ def run_analysis(
     source_urls: list[str],
 ) -> dict:
     """
-    Run the 4-agent sequential conflict analysis pipeline.
-
-    Args:
-        query:         The user's search query (region / topic).
-        retrieved_docs: Top-k documents from FAISS similarity search.
-        source_urls:   Recent indexed URLs for the sources field.
-
-    Returns:
-        Validated dict matching the intelligence report schema.
+    Run the fast single-shot conflict analysis pipeline.
     """
+    # ── Check Cache ─────────────────────────────────────────────────────────
+    cached_result = analysis_cache.get(query)
+    if cached_result:
+        print(f"[Cache] Hit for query: '{query}'")
+        return cached_result
 
-    # ── Build context string from retrieved docs ────────────────────────────
+    # ── Build context from retrieved docs ───────────────────────────────────
     context_parts = []
-    for i, doc in enumerate(retrieved_docs, start=1):
-        src   = doc.metadata.get("source", "unknown")
+    for i, doc in enumerate(retrieved_docs[:8], start=1):
+        src   = doc.metadata.get("source", doc.metadata.get("url", "unknown"))
         title = doc.metadata.get("title", "")
-        header = f"[Doc {i} | Source: {src} | {title}]"
-        context_parts.append(f"{header}\n{doc.page_content}")
+        header = f"[Article {i} | {src} | {title}]"
+        context_parts.append(f"{header}\n{doc.page_content[:400]}")
 
-    context = "\n\n---\n\n".join(context_parts)[:_MAX_CONTEXT_CHARS]
-    urls_json = json.dumps(source_urls[:5])
+    context = "\n\n".join(context_parts)[:_MAX_CONTEXT_CHARS]
 
-    # ── Create agents ───────────────────────────────────────────────────────
-    ing_agent    = create_ingestion_agent()
-    det_agent    = create_detection_agent()
-    risk_agent   = create_risk_scoring_agent()
-    trend_agent  = create_trend_analysis_agent()
-    sim_agent    = create_simulation_agent()
-    civ_agent    = create_civilian_impact_agent()
-    infra_agent  = create_impact_analysis_agent()
-    brief_agent  = create_briefing_agent()
+    if not context.strip():
+        print("[Pipeline] No context available — returning fallback")
+        return _fallback(source_urls, query)
 
-    # ── Define tasks ────────────────────────────────────────────────────────
+    # ── Single LLM Call ─────────────────────────────────────────────────────
+    prompt = _build_master_prompt(query, context)
+    print(f"[Pipeline] Sending prompt for: '{query}' ({len(context)} chars context)")
 
-    task1 = Task(
-        description=(
-            f'Analyze news articles about "{query}". Focus on Intelligence Fusion: '
-            f"cross-reference facts between different sources to confirm events. "
-            f"Extract locations, primary actors, and credible time-sequences.\n\n"
-            f"ARTICLES:\n{context}"
-        ),
-        agent=ing_agent,
-        expected_output="A normalized intelligence summary with cross-referenced actors and events."
+    raw_output = _call_ollama(prompt)
+    print(f"[Pipeline] Raw output ({len(raw_output)} chars):\n{raw_output[:300]}...")
+
+    # ── Parse & Validate ────────────────────────────────────────────────────
+    result = _parse_and_validate(raw_output, source_urls, query)
+
+    # ── Save to Cache (only if it looks real, not all defaults) ─────────────
+    is_real = (
+        result.get("risk_numerical", 50) != 50 or
+        result.get("confidence", 0.5) != 0.5 or
+        result.get("location", "unknown") not in ("unknown", "United States")
     )
+    if is_real:
+        analysis_cache.set(query, result)
+    else:
+        print(f"[Pipeline] Result looks like defaults — NOT caching to force re-analysis")
 
-    task2 = Task(
-        description=(
-            f"From the fused intelligence, identify specific conflict coordinates. "
-            f"Locate high-intensity hotspots and assign spatial metadata (lat/lng/intensity). "
-            f"Focus on precision for tactical mapping."
-        ),
-        agent=det_agent,
-        expected_output="A list of coordinates, names, and intensity ratings for hotspots."
-    )
-
-    task3 = Task(
-        description=(
-            f"Evaluate the probability of further escalation for '{query}'. "
-            f"Assign a numerical risk score (0-100) and provide a 'reasoning' block "
-            f"explaining the score based on signal frequency and source weight."
-        ),
-        agent=risk_agent,
-        expected_output="A numerical risk score and a detailed logical reasoning statement."
-    )
-
-    task4 = Task(
-        description=(
-            f"Analyze the trajectory of signals. Is the situation: ESCALATING, STABLE, or DE-ESCALATING? "
-            f"Compare current events to the broader query context to identify momentum."
-        ),
-        agent=trend_agent,
-        expected_output="A trajectory status and a brief time-series analysis."
-    )
-
-    task5 = Task(
-        description=(
-            f"Generate three probabilistic scenarios for '{query}': "
-            f"BEST CASE (Diplomatic path), WORST CASE (Full escalation), and MOST LIKELY. "
-            f"Include a 'probability' percentage for each scenario."
-        ),
-        agent=sim_agent,
-        expected_output="Three detailed scenarios with associated probability percentages."
-    )
-
-    task6 = Task(
-        description=(
-            f"Model the humanitarian cost. Estimate casualty risk level (LOW/MED/HIGH), "
-            f"forced displacement risk, and specific resource shortages (Food, Water, Medical)."
-        ),
-        agent=civ_agent,
-        expected_output="A humanitarian impact profile including displacement and resource risk."
-    )
-
-    task7 = Task(
-        description=(
-            f"Predict infrastructure and economic disruption. Identify critical choke points: "
-            f"power grids, transport hubs, or supply chains impacted by the conflict."
-        ),
-        agent=infra_agent,
-        expected_output="A damage assessment for critical infrastructure components."
-    )
-
-    task8 = Task(
-        description=(
-            f"Compile ALL previous analysis into ONE 'Commander-Grade' JSON brief.\n"
-            f"Required JSON keys:\n"
-            f"- 'risk_numerical' (0-100)\n"
-            f"- 'confidence' (0.0-1.0)\n"
-            f"- 'trajectory' (ESCALATING/STABLE/DE-ESCALATING)\n"
-            f"- 'location' & 'hotspots' (as before)\n"
-            f"- 'scenarios' (with probability values)\n"
-            f"- 'civilian_impact' (casualties, displacement, shortages)\n"
-            f"- 'infrastructure' (damage assessment)\n"
-            f"- 'reasoning' (overall strategic logic)\n"
-            f"- 'sources' (attribution)\n\n"
-            f"Output ONLY valid JSON."
-        ),
-        agent=brief_agent,
-        expected_output="A complete, information-dense JSON intelligence brief."
-    )
+    return result
 
 
+# ─── Output parsing ──────────────────────────────────────────────────────────
 
+def _parse_and_validate(raw: str, source_urls: list[str], query: str = "") -> dict:
+    """Extract and validate JSON from the LLM output with multiple fallback strategies."""
+    raw = raw.strip()
 
-
-
-    # ── Run the crew ────────────────────────────────────────────────────────
-    crew = Crew(
-        agents=[ing_agent, det_agent, risk_agent, trend_agent, sim_agent, civ_agent, infra_agent, brief_agent],
-        tasks=[task1, task2, task3, task4, task5, task6, task7, task8],
-        verbose=True,
-        process=Process.sequential,
-    )
-
-
-
-    raw_output = str(crew.kickoff())
-    print(f"[Crew] Raw output length: {len(raw_output)} chars")
-
-    return _parse_and_validate(raw_output, source_urls)
-
-
-# ─── Output parsing ─────────────────────────────────────────────────────────
-
-def _parse_and_validate(raw: str, source_urls: list[str]) -> dict:
-    """
-    Extract and validate JSON from the LLM output string.
-
-    Tries two strategies:
-      1. Direct JSON parse of the entire string.
-      2. Regex extraction of the outermost {...} block.
-    Falls back to a safe default structure if both fail.
-    """
+    data = None
 
     # Strategy 1: direct parse
     try:
-        data = json.loads(raw.strip())
-        return _validate_schema(data, source_urls)
+        data = json.loads(raw)
     except (json.JSONDecodeError, ValueError):
         pass
 
-    # Strategy 2: extract first {...} block
-    match = re.search(r"\{.*\}", raw, re.DOTALL)
-    if match:
+    # Strategy 2: strip markdown code blocks then parse
+    if data is None:
+        stripped = re.sub(r'```(?:json)?', '', raw).strip().rstrip('`').strip()
         try:
-            data = json.loads(match.group())
-            return _validate_schema(data, source_urls)
+            data = json.loads(stripped)
         except (json.JSONDecodeError, ValueError):
             pass
 
-    # Fallback
-    print("[Crew] JSON parsing failed — returning fallback structure")
-    return _fallback(source_urls)
+    # Strategy 3: extract first { ... } block (handles extra text)
+    if data is None:
+        match = re.search(r'\{[\s\S]*\}', raw)
+        if match:
+            try:
+                data = json.loads(match.group())
+            except (json.JSONDecodeError, ValueError):
+                pass
+
+    # Strategy 4: fix common LLM JSON mistakes (trailing commas, single quotes)
+    if data is None:
+        fixed = re.sub(r',\s*([}\]])', r'\1', raw)       # Remove trailing commas
+        fixed = fixed.replace("'", '"')                    # Single → double quotes
+        match = re.search(r'\{[\s\S]*\}', fixed)
+        if match:
+            try:
+                data = json.loads(match.group())
+            except (json.JSONDecodeError, ValueError):
+                pass
+
+    if data is None:
+        print("[Pipeline] All JSON parsing strategies failed — using text extraction")
+        # Strategy 5: scrape individual values from text
+        scraped = _extract_numbers_from_text(raw, query)
+        print(f"[Pipeline] Scraped values: {scraped}")
+        return _fallback(source_urls, query, overrides=scraped)
+
+    return _validate_schema(data, source_urls)
 
 
 def _validate_schema(data: dict, source_urls: list[str]) -> dict:
-    """Ensure all required keys are present; fill missing ones with defaults."""
-    required_keys = {"risk_numerical", "confidence", "trajectory", "location", "scenarios", "civilian_impact"}
-    missing = required_keys - set(data.keys())
+    """Normalize and fill missing keys with contextual defaults."""
 
-    for key in missing:
-        print(f"[Crew] Missing key in output: '{key}' — using default")
+    # ── Risk validation ──────────────────────────────────────────────────────
+    # Try to parse risk_numerical first
+    try:
+        rn = int(float(str(data.get("risk_numerical", -1)).replace('%', '')))
+        if 0 <= rn <= 100:
+            data["risk_numerical"] = rn
+        else:
+            data.pop("risk_numerical", None)
+    except (TypeError, ValueError):
+        data.pop("risk_numerical", None)
 
+    # Normalize risk label
+    risk_raw = str(data.get("risk", "")).upper().strip()
+    if risk_raw not in ("HIGH", "MEDIUM", "LOW"):
+        risk_raw = None
+
+    # Cross-derive risk label ↔ numerical
+    if "risk_numerical" in data and not risk_raw:
+        n = data["risk_numerical"]
+        risk_raw = "HIGH" if n >= 70 else ("LOW" if n <= 30 else "MEDIUM")
+    elif risk_raw and "risk_numerical" not in data:
+        data["risk_numerical"] = {"HIGH": 75, "MEDIUM": 50, "LOW": 25}[risk_raw]
+
+    data["risk"] = risk_raw or "MEDIUM"
     data.setdefault("risk_numerical", 50)
-    data.setdefault("confidence", 0.5)
-    data.setdefault("risk", "MEDIUM")
 
-    data.setdefault("trajectory", "STABLE")
-    data.setdefault("location", "unknown")
-    data.setdefault("latitude", 0.0)
-    data.setdefault("longitude", 0.0)
-    data.setdefault("hotspots", [])
-    data.setdefault("reasoning", "Consensus derived from multiple intelligence streams.")
-    
-    data.setdefault("civilian_impact", {
-        "casualties": "LOW",
-        "displacement": "Rising",
-        "shortages": ["Food", "Medicine"]
-    })
-    
-    data.setdefault("infrastructure", {
-        "status": "Partially Degraded",
-        "chokepoints": ["N/A"]
-    })
-
-    data.setdefault("scenarios", {
-        "best":   {"description": "Diplomatic path", "probability": "30%"},
-        "worst":  {"description": "Full escalation", "probability": "20%"},
-        "likely": {"description": "Continuing tensions", "probability": "50%"},
-    })
-    data.setdefault("sources", source_urls[:5])
-
-
-    # Normalise risk
-    if isinstance(data.get("risk"), str):
-        data["risk"] = data["risk"].upper()
-
-    # Clamp confidence
+    # ── Confidence ──────────────────────────────────────────────────────────
     try:
-        data["confidence"] = max(0.0, min(1.0, float(data["confidence"])))
+        c = float(str(data.get("confidence", 0.5)).replace('%', ''))
+        # If model output it as percentage (e.g. 72 instead of 0.72)
+        if c > 1.0:
+            c = c / 100.0
+        data["confidence"] = max(0.1, min(1.0, c))
     except (TypeError, ValueError):
-        data["confidence"] = 0.5
+        data.setdefault("confidence", 0.5)
 
-    # Clamp coords
+    # ── Trajectory normalization ─────────────────────────────────────────────
+    traj_raw = str(data.get("trajectory", "")).upper().strip()
+    # Map common non-standard values to valid ones
+    traj_map = {
+        "UNSTABLE": "ESCALATING",
+        "ESCALATING": "ESCALATING",
+        "STABLE": "STABLE",
+        "DE-ESCALATING": "DE-ESCALATING",
+        "DEESCALATING": "DE-ESCALATING",
+        "DECLINING": "DE-ESCALATING",
+        "IMPROVING": "DE-ESCALATING",
+        "WORSENING": "ESCALATING",
+        "INCREASING": "ESCALATING",
+    }
+    data["trajectory"] = traj_map.get(traj_raw, "STABLE")
+
+    # ── Location & Coordinates ────────────────────────────────────────────────
+    # Handle GeoJSON dict: {"type": "Point", "coordinates": [lng, lat]}
+    loc = data.get("location", "Global")
+    if isinstance(loc, dict):
+        coords = loc.get("coordinates", [])
+        if len(coords) >= 2:
+            # GeoJSON is [lng, lat]
+            data["longitude"] = float(coords[0])
+            data["latitude"]  = float(coords[1])
+        data["location"] = loc.get("name", loc.get("city", loc.get("country", "Global")))
+    else:
+        data["location"] = str(loc) if loc else "Global"
+
+    # Handle coordinates that may also be returned as dicts or lists
+    raw_lat = data.get("latitude", 0.0)
+    raw_lng = data.get("longitude", 0.0)
+
+    if isinstance(raw_lat, dict):
+        raw_lat = raw_lat.get("value", 0.0)
+    if isinstance(raw_lng, dict):
+        raw_lng = raw_lng.get("value", 0.0)
+
     try:
-        data["latitude"]  = float(data.get("latitude", 0.0))
-        data["longitude"] = float(data.get("longitude", 0.0))
+        data["latitude"]  = float(raw_lat)
+        data["longitude"] = float(raw_lng)
     except (TypeError, ValueError):
-        data["latitude"] = 0.0
+        data["latitude"]  = 0.0
         data["longitude"] = 0.0
 
-    # Validate hotspots
+    data.setdefault("summary", "")
+    data.setdefault("reasoning", "Analysis based on available intelligence.")
+
+    # ── Hotspots ─────────────────────────────────────────────────────────────
     if not isinstance(data.get("hotspots"), list):
         data["hotspots"] = []
-    
     clean_hotspots = []
     for h in data["hotspots"]:
         if isinstance(h, dict) and "lat" in h and "lng" in h:
             try:
                 clean_hotspots.append({
-                    "name": str(h.get("name", "unknown")),
-                    "lat": float(h["lat"]),
-                    "lng": float(h["lng"]),
-                    "intensity": int(h.get("intensity", 5))
+                    "name":      str(h.get("name", "unknown")),
+                    "lat":       float(h["lat"]),
+                    "lng":       float(h["lng"]),
+                    "intensity": min(10, max(1, int(h.get("intensity", 5))))
                 })
             except (ValueError, TypeError):
                 continue
     data["hotspots"] = clean_hotspots
 
+    # ── Signals ──────────────────────────────────────────────────────────────
+    if not isinstance(data.get("signals"), list):
+        data["signals"] = []
+
+    # ── Defaults for complex nested fields ──────────────────────────────────
+    data.setdefault("civilian_impact", {
+        "casualties": "LOW",
+        "displacement": "Monitoring required",
+        "shortages": []
+    })
+    data.setdefault("infrastructure", {
+        "status": "Unknown",
+        "chokepoints": []
+    })
+    data.setdefault("scenarios", {
+        "best":   {"description": "Positive resolution", "probability": "25%"},
+        "likely": {"description": "Status quo continues", "probability": "55%"},
+        "worst":  {"description": "Significant deterioration", "probability": "20%"},
+    })
+    data.setdefault("sources", [
+        {"name": url, "title": "Source Document", "type": "OSINT"}
+        for url in source_urls[:5]
+    ])
+
     return data
 
 
-
-
-def _fallback(source_urls: list[str]) -> dict:
-    return {
-        "risk":       "MEDIUM",
-        "confidence": 0.5,
-        "signals":    ["analysis output could not be parsed"],
-        "location":   "unknown",
-        "latitude":   0.0,
-        "longitude":  0.0,
-        "hotspots":   [],
-        "scenarios":  {
-            "best":   "De-escalation is possible with international mediation.",
-            "worst":  "Full-scale conflict with significant civilian displacement.",
-            "likely": "Continued low-level tensions with periodic incidents.",
+def _fallback(source_urls: list[str], query: str = "", overrides: dict = None) -> dict:
+    """Return a safe fallback structure, with any scraped values merged in."""
+    base = {
+        "risk":             "MEDIUM",
+        "risk_numerical":   50,
+        "confidence":       0.4,
+        "trajectory":       "STABLE",
+        "location":         "Unknown",
+        "latitude":         0.0,
+        "longitude":        0.0,
+        "summary":          f"Analysis of '{query}' could not be completed. Please try again.",
+        "reasoning":        "Insufficient data to produce a reliable assessment.",
+        "hotspots":         [],
+        "signals":          [],
+        "scenarios": {
+            "best":   {"description": "Situation resolves without escalation", "probability": "30%"},
+            "likely": {"description": "Current trajectory continues",          "probability": "50%"},
+            "worst":  {"description": "Significant negative development",      "probability": "20%"},
         },
-        "sources": source_urls[:5],
+        "civilian_impact": {
+            "casualties":   "UNKNOWN",
+            "displacement": "Monitoring required",
+            "shortages":    []
+        },
+        "infrastructure": {
+            "status":      "Unknown",
+            "chokepoints": []
+        },
+        "sources": [
+            {"name": url, "title": "Source Document", "type": "OSINT"}
+            for url in source_urls[:5]
+        ]
     }
-
-
+    if overrides:
+        base.update({k: v for k, v in overrides.items() if v is not None})
+    return base

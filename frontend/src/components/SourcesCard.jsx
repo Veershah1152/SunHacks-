@@ -1,138 +1,72 @@
-function SkeletonBlock({ h = '20px', w = '100%' }) {
-  return <div className="skeleton" style={{ height: h, width: w, borderRadius: '6px' }} />
-}
-
-function truncateUrl(url, maxLen = 60) {
-  if (!url) return 'unknown source'
-  try {
-    const u = new URL(url)
-    const display = `${u.hostname}${u.pathname}`
-    return display.length > maxLen ? display.slice(0, maxLen) + '…' : display
-  } catch {
-    return url.length > maxLen ? url.slice(0, maxLen) + '…' : url
-  }
-}
-
-function getDomain(url) {
-  try { return new URL(url).hostname.replace('www.', '') }
-  catch { return 'source' }
-}
+import React from 'react';
 
 export default function SourcesCard({ result, loading }) {
-  const sources = (result?.sources || []).filter(Boolean)
-
-  const S = {
-    card: { padding: '24px 28px' },
-    header: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: '16px',
-    },
-    title: {
-      fontSize: '0.68rem',
-      fontWeight: 700,
-      color: '#3d5080',
-      textTransform: 'uppercase',
-      letterSpacing: '0.12em',
-    },
-    count: {
-      fontSize: '0.75rem',
-      color: '#7b5ea7',
-      fontWeight: 600,
-      background: 'rgba(123,94,167,0.12)',
-      padding: '3px 10px',
-      borderRadius: '20px',
-    },
-    list: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px',
-    },
-    item: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '12px',
-      background: 'rgba(255,255,255,0.03)',
-      border: '1px solid rgba(255,255,255,0.05)',
-      borderRadius: '8px',
-      padding: '10px 14px',
-      textDecoration: 'none',
-      transition: 'all 0.2s',
-      color: '#c0cfe8',
-    },
-    domainBadge: {
-      fontSize: '0.68rem',
-      fontWeight: 600,
-      background: 'rgba(0,212,255,0.08)',
-      border: '1px solid rgba(0,212,255,0.15)',
-      borderRadius: '5px',
-      padding: '2px 8px',
-      color: '#00d4ff',
-      whiteSpace: 'nowrap',
-      flexShrink: 0,
-    },
-    urlText: {
-      fontSize: '0.8rem',
-      flex: 1,
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-    extIcon: {
-      fontSize: '12px',
-      color: '#3d5080',
-      flexShrink: 0,
-    },
-    emptyMsg: {
-      fontSize: '0.85rem',
-      color: '#3d5080',
-      fontStyle: 'italic',
-    },
-  }
+  const sources = result?.sources || [];
 
   return (
-    <div className="glass-card" style={S.card}>
-      <div style={S.header}>
-        <span style={S.title}>Intelligence Sources</span>
-        {!loading && sources.length > 0 && (
-          <span style={S.count}>{sources.length} sources</span>
-        )}
+    <div className="kinetic-card">
+      <div style={{ marginBottom: '24px' }}>
+        <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-head)', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.05em' }}>
+          SOURCE TRACEABILITY & AUDIT
+        </span>
       </div>
 
-      {loading ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {[1, 2, 3].map((i) => (
-            <SkeletonBlock key={i} h="42px" />
-          ))}
-        </div>
-      ) : sources.length > 0 ? (
-        <div style={S.list}>
-          {sources.map((url, i) => (
-            <a
-              key={i}
-              href={url.startsWith('http') ? url : `https://${url}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={S.item}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background  = 'rgba(0,212,255,0.06)'
-                e.currentTarget.style.borderColor = 'rgba(0,212,255,0.2)'
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+        {loading ? (
+          [1, 2, 3, 4].map(i => <div key={i} className="skeleton" style={{ height: '80px', borderRadius: 'var(--radius-lg)' }} />)
+        ) : sources.length > 0 ? (
+          sources.map((src, i) => (
+            <div 
+              key={i} 
+              style={{ 
+                padding: '16px', 
+                background: 'var(--surface-low)', 
+                border: '1px solid var(--glass-border)',
+                borderRadius: 'var(--radius-lg)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                transition: 'var(--transition-smooth)'
               }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background  = 'rgba(255,255,255,0.03)'
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'
-              }}
+              onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
+              onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--glass-border)'}
             >
-              <span style={S.domainBadge}>{getDomain(url)}</span>
-              <span style={S.urlText}>{truncateUrl(url)}</span>
-              <span style={S.extIcon}>↗</span>
-            </a>
-          ))}
-        </div>
-      ) : (
-        <p style={S.emptyMsg}>No sources available in current analysis.</p>
-      )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary)' }}>{src.name?.toUpperCase() || 'DOCUMENT'}</span>
+                <span style={{ fontSize: '0.65rem', padding: '2px 6px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}>
+                  {src.type || 'OSINT'}
+                </span>
+              </div>
+              <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', fontStyle: 'italic' }}>
+                "{src.title || 'Classified Signal Source'}"
+              </div>
+              {src.url && (
+                <a 
+                  href={src.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  style={{ 
+                    fontSize: '0.7rem', 
+                    color: 'var(--primary)', 
+                    textDecoration: 'none', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '4px',
+                    marginTop: '4px',
+                    opacity: 0.8
+                  }}
+                >
+                  LINK TO VERACITY ↗
+                </a>
+              )}
+            </div>
+          ))
+        ) : (
+          <div style={{ textAlign: 'center', gridColumn: '1 / -1', padding: '40px', color: '#7a8089' }}>
+            No source citations available for this intelligence packet.
+          </div>
+        )}
+      </div>
     </div>
-  )
+  );
 }

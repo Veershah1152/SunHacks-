@@ -98,10 +98,14 @@ async def update_data(
     """
     print(f"\n[/update] Query: '{query}'")
 
-    # ── Fetch ──────────────────────────────────────────────────────────────
-    gnews_docs = fetch_gnews(query)
-    rss_docs   = fetch_rss(query)
-    all_docs   = gnews_docs + rss_docs
+    # ── Fetch in Parallel ──────────────────────────────────────────────────
+    import asyncio
+    
+    gnews_task = asyncio.to_thread(fetch_gnews, query)
+    rss_task   = asyncio.to_thread(fetch_rss, query)
+    
+    gnews_docs, rss_docs = await asyncio.gather(gnews_task, rss_task)
+    all_docs = gnews_docs + rss_docs
 
     print(
         f"[/update] Fetched: {len(gnews_docs)} GNews + "
@@ -133,68 +137,98 @@ async def update_data(
 async def analyze(
     query: str = Query(
         ...,
-        description="Region or conflict topic to analyse (e.g. 'Sudan', 'Gaza ceasefire')",
+        description="Any topic or conflict to analyse (e.g. 'Epstein files', 'Gaza ceasefire')",
     )
 ):
     """
-    Run the 4-agent CrewAI conflict analysis pipeline for a given query.
-
-    Pipeline:
-      1. IngestionAgent  → extract facts from retrieved FAISS documents
-      2. DetectionAgent  → detect signals + risk + confidence
-      3. SimulationAgent → generate 3 scenarios
-      4. ReportAgent     → compile strict JSON report
-
-    Retrieves top-5 documents from FAISS (vector similarity search).
-    Target response time: < 60 seconds (LLM-bound).
+    Run the fast single-shot intelligence analysis pipeline for any query.
+    Automatically fetches fresh news articles for the specific topic before analysis.
     """
     print(f"\n[/analyze] Query: '{query}'")
 
-    if not store.is_ready():
+    # ── Step 1: Fetch fresh topic-specific news in parallel ───────────────────
+    import asyncio
+    from processing.cleaner import clean_documents
+    from processing.chunker import chunk_documents
+
+    print(f"[/analyze] Fetching fresh news for: '{query}'")
+    gnews_task = asyncio.to_thread(fetch_gnews, query, 10)
+    rss_task   = asyncio.to_thread(fetch_rss,   query)
+
+    gnews_docs, rss_docs = await asyncio.gather(gnews_task, rss_task)
+    fresh_docs = gnews_docs + rss_docs
+    print(f"[/analyze] Fresh fetch: {len(gnews_docs)} GNews + {len(rss_docs)} RSS = {len(fresh_docs)} docs")
+
+    # ── Step 2: Decide which documents to use ─────────────────────────────────
+    if fresh_docs:
+        # Use fresh fetched docs directly (most relevant to the query)
+        cleaned    = clean_documents(fresh_docs)
+        chunks     = chunk_documents(cleaned)
+        docs_to_analyze = chunks[:10] if chunks else fresh_docs[:10]
+        print(f"[/analyze] Using {len(docs_to_analyze)} fresh documents for analysis")
+
+        # Also store them in FAISS for future searches
+        try:
+            store.add_documents(chunks)
+        except Exception as e:
+            print(f"[/analyze] FAISS store warning (non-fatal): {e}")
+
+    elif store.is_ready():
+        # Fallback: search existing FAISS index
+        docs_to_analyze = store.search(query, k=8)
+        print(f"[/analyze] Fallback: using {len(docs_to_analyze)} FAISS documents")
+
+        if not docs_to_analyze:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No articles found for '{query}'. Check your internet connection or try a different query."
+            )
+    else:
         raise HTTPException(
             status_code=503,
-            detail=(
-                "Vector store is empty. "
-                "Call POST /update first to ingest OSINT data."
-            ),
+            detail="No data available. The news fetcher returned no results and the vector store is empty."
         )
 
-    # ── Retrieve relevant documents ────────────────────────────────────────
-    docs = store.search(query, k=5)
+    # ── Step 3: Run the analysis pipeline ────────────────────────────────────
+    source_urls = [d.metadata.get("url", d.metadata.get("link", "")) for d in docs_to_analyze]
 
-    if not docs:
-        raise HTTPException(
-            status_code=404,
-            detail=(
-                f"No documents found for '{query}'. "
-                "Try a broader query or call POST /update to refresh data."
-            ),
-        )
-
-    print(f"[/analyze] Retrieved {len(docs)} documents from FAISS")
-
-    # ── Run multi-agent pipeline ───────────────────────────────────────────
-    source_urls = [d.metadata.get("link", "") for d in docs]
-    
     try:
-        print(f"[/analyze] Starting CrewAI pipeline for: {query}")
-        result = run_analysis(query, docs, source_urls)
-        
-        # ── Save outcome for trend tracking ────────────────────────────────────
-        store.sqlite.add_analysis_record(
-            query=query,
-            risk=result.get("risk", "MEDIUM"),
-            confidence=result.get("confidence", 0.5),
-            location=result.get("location", "unknown"),
-            lat=result.get("latitude", 0.0),
-            lng=result.get("longitude", 0.0)
-        )
+        print(f"[/analyze] Starting single-shot pipeline for: '{query}'")
+        result = run_analysis(query, docs_to_analyze, source_urls)
+
+        # ── Save to trends DB — type-safe coercion to prevent SQLite errors ──
+        def _safe_str(v, default="unknown"):
+            return str(v) if not isinstance(v, (dict, list)) else default
+
+        def _safe_float(v, default=0.0):
+            try: return float(v) if not isinstance(v, (dict, list)) else default
+            except: return default
+
+        def _safe_int(v, default=50):
+            try: return int(float(v)) if not isinstance(v, (dict, list)) else default
+            except: return default
+
+        try:
+            store.sqlite.add_analysis_record(
+                query=query,
+                risk=_safe_str(result.get("risk"), "MEDIUM"),
+                risk_numerical=_safe_int(result.get("risk_numerical"), 50),
+                confidence=_safe_float(result.get("confidence"), 0.5),
+                location=_safe_str(result.get("location"), "unknown"),
+                lat=_safe_float(result.get("latitude"), 0.0),
+                lng=_safe_float(result.get("longitude"), 0.0)
+            )
+        except Exception as db_err:
+            # DB write failure is non-fatal — still return the analysis
+            print(f"[/analyze] DB record warning (non-fatal): {db_err}")
+
         return result
     except Exception as e:
         import traceback
         print(f"\n[CRITICAL ERROR] Analysis failed: {str(e)}")
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"AI Pipeline Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Analysis Pipeline Error: {str(e)}")
+
 
 
 

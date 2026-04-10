@@ -1,0 +1,71 @@
+{
+  "query": "Ukraine war",
+  "cached_at": "2026-04-10T02:15:43.064701",
+  "result": {
+    "risk": "MEDIUM",
+    "risk_numerical": 60,
+    "confidence": 0.8,
+    "trajectory": "ESCALATING",
+    "location": "Ukraine",
+    "summary": "The ongoing conflict between Ukraine and Russia has led to a significant escalation of tensions, with periodic acts of war diplomacy and the exchange of bodies between the two nations.",
+    "reasoning": "The articles suggest that the conflict is ongoing and has led to a significant escalation of tensions, indicating a medium risk level.",
+    "hotspots": [
+      {
+        "name": "Donbas region",
+        "lat": 47.83,
+        "lng": 37.5,
+        "intensity": 8
+      }
+    ],
+    "signals": [
+      {
+        "source": "Russian Supreme Court",
+        "text": "Criminalization of Memorial's activities",
+        "intensity": 0.9
+      },
+      {
+        "source": "Ukrainian and Russian sources",
+        "text": "Exchange of bodies between Ukraine and Russia",
+        "intensity": 0.8
+      }
+    ],
+    "scenarios": {
+      "best": {
+        "description": "Ceasefire agreement and diplomatic resolution",
+        "probability": "15%"
+      },
+      "likely": {
+        "description": "Escalation of violence and further sanctions",
+        "probability": "60%"
+      },
+      "worst": {
+        "description": "Full-scale invasion by Russia",
+        "probability": "25%"
+      }
+    },
+    "civilian_impact": {
+      "casualties": "MODERATE",
+      "displacement": "Significant displacement expected",
+      "shortages": [
+        "Food and medicine",
+        "Legal access"
+      ]
+    },
+    "infrastructure": {
+      "status": "Institutional systems under significant pressure",
+      "chokepoints": [
+        "Economic sanctions",
+        "Media access"
+      ]
+    },
+    "sources": [
+      {
+        "name": "GNews",
+        "title": "Ukraine War Analysis",
+        "type": "OSINT"
+      }
+    ],
+    "latitude": 0.0,
+    "longitude": 0.0
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "query": "Iran war",
+  "cached_at": "2026-04-10T01:59:45.480293",
+  "result": {
+    "risk": "MEDIUM",
+    "risk_numerical": 65,
+    "confidence": 0.8,
+    "trajectory": "STABLE",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        -44.42,
+        30.52
+      ]
+    },
+    "summary": "The Iran war is causing economic uncertainty and recession fears in the US, with a sharp fall in GDP growth to 0.5% in Q4 2025. The ceasefire negotiated by Trump is fragile and may not hold.",
+    "reasoning": "The articles suggest that the Iran war is having a significant impact on the US economy, leading to recession fears and a fragile ceasefire.",
+    "hotspots": [
+      {
+        "name": "Middle East",
+        "lat": 30.52,
+        "lng": -44.42,
+        "intensity": 8
+      }
+    ],
+    "signals": [
+      {
+        "source": "US Bureau of Economic Analysis",
+        "text": "Sharp fall in US GDP growth to 0.5% in Q4 2025",
+        "intensity": 0.9
+      },
+      {
+        "source": "Daily Mail JL Partners poll",
+        "text": "American voters are cautiously embracing Trump's fragile ceasefire with Iran",
+        "intensity": 0.8
+      }
+    ],
+    "scenarios": {
+      "best": {
+        "description": "Iran war ends in a negotiated ceasefire",
+        "probability": "15%"
+      },
+      "likely": {
+        "description": "Iran war escalates into full-scale conflict",
+        "probability": "60%"
+      },
+      "worst": {
+        "description": "Iran war leads to global economic collapse",
+        "probability": "25%"
+      }
+    },
+    "civilian_impact": {
+      "casualties": "MODERATE",
+      "displacement": "Significant displacement expected in the Middle East",
+      "shortages": [
+        "Fuel",
+        "Food"
+      ]
+    },
+    "infrastructure": {
+      "status": "Critical infrastructure under threat",
+      "chokepoints": [
+        "Oil supplies",
+        "Global financial markets"
+      ]
+    },
+    "sources": [
+      {
+        "name": "US Bureau of Economic Analysis",
+        "title": "US GDP growth crashes to 0.5% in Q4 2025",
+        "type": "OSINT"
+      },
+      {
+        "name": "Daily Mail JL Partners poll",
+        "title": "Americans reveal their verdict on Trump's shaky ceasefire with Iran and whether it'll last",
+        "type": "OSINT"
+      }
+    ],
+    "latitude": 0.0,
+    "longitude": 0.0
+  }
+}

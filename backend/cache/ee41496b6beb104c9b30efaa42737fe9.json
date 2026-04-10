@@ -1,0 +1,66 @@
+{
+  "query": "epstien files",
+  "cached_at": "2026-04-10T02:20:43.354411",
+  "result": {
+    "risk": "MEDIUM",
+    "risk_numerical": 60,
+    "confidence": 0.8,
+    "trajectory": "ESCALATING",
+    "location": "United States",
+    "latitude": 37.09,
+    "longitude": -95.71,
+    "summary": "The Epstein files refer to the alleged documents and records related to Jeffrey Epstein's crimes, including a $267m hospice fraud scheme in California. The US Department of Justice has been criticized for its handling of the case.",
+    "reasoning": "I assigned this risk level due to the potential for further revelations about Epstein's crimes and the ongoing investigation into his associates.",
+    "hotspots": [
+      {
+        "name": "Florida",
+        "lat": 26.12,
+        "lng": -80.13,
+        "intensity": 8
+      }
+    ],
+    "signals": [
+      {
+        "source": "Pam Bondi",
+        "text": "Pam Bondi's approach to the Epstein files has been criticized by some as inadequate.",
+        "intensity": 0.9
+      }
+    ],
+    "scenarios": {
+      "best": {
+        "description": "The US Department of Justice discloses all information about Epstein's crimes and associates.",
+        "probability": "15%"
+      },
+      "likely": {
+        "description": "Further revelations about Epstein's crimes come to light, but the investigation into his associates continues.",
+        "probability": "60%"
+      },
+      "worst": {
+        "description": "The US Department of Justice is found to have covered up information about Epstein's crimes and associates.",
+        "probability": "25%"
+      }
+    },
+    "civilian_impact": {
+      "casualties": "LOW",
+      "displacement": "Minimal displacement expected",
+      "shortages": [
+        "Information",
+        "Legal Access"
+      ]
+    },
+    "infrastructure": {
+      "status": "Institutional systems under pressure",
+      "chokepoints": [
+        "Legal system",
+        "Media access"
+      ]
+    },
+    "sources": [
+      {
+        "name": "GNews",
+        "title": "Pam Bondi and her approach to the Epstein files",
+        "type": "OSINT"
+      }
+    ]
+  }
+}

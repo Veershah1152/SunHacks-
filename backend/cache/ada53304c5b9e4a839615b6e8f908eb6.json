@@ -1,0 +1,71 @@
+{
+  "query": "USA",
+  "cached_at": "2026-04-10T05:34:08.335587",
+  "result": {
+    "risk": "MEDIUM",
+    "risk_numerical": 65,
+    "confidence": 0.8,
+    "trajectory": "STABLE",
+    "location": "United States",
+    "latitude": 37.09,
+    "longitude": -95.71,
+    "summary": "The articles highlight various aspects of the United States, including its top workplaces, athletes representing the country, and its football team preparing for the World Cup.",
+    "reasoning": "I assigned a medium risk level due to the diverse range of topics covered in the articles, which do not indicate any severe or catastrophic events.",
+    "hotspots": [
+      {
+        "name": "Key Location",
+        "lat": 40.71,
+        "lng": -74.0,
+        "intensity": 6
+      }
+    ],
+    "signals": [
+      {
+        "source": "USA Today",
+        "text": "Recognition as a top workplace",
+        "intensity": 0.7
+      },
+      {
+        "source": "USA Today",
+        "text": "Athletes representing the country in Olympics",
+        "intensity": 0.8
+      }
+    ],
+    "scenarios": {
+      "best": {
+        "description": "Successful World Cup preparations and continued economic growth",
+        "probability": "30%"
+      },
+      "likely": {
+        "description": "Stable political climate and moderate economic growth",
+        "probability": "60%"
+      },
+      "worst": {
+        "description": "Economic downturn and social unrest",
+        "probability": "10%"
+      }
+    },
+    "civilian_impact": {
+      "casualties": "LOW",
+      "displacement": "Minimal displacement expected",
+      "shortages": [
+        "Information",
+        "Legal Access"
+      ]
+    },
+    "infrastructure": {
+      "status": "Institutional systems under pressure",
+      "chokepoints": [
+        "Legal system",
+        "Media access"
+      ]
+    },
+    "sources": [
+      {
+        "name": "USA Today",
+        "title": "Top Workplaces",
+        "type": "OSINT"
+      }
+    ]
+  }
+}
