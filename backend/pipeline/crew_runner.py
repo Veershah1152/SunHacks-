@@ -15,15 +15,17 @@ _OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 _LLM_MODEL = os.getenv("LLM_MODEL", "llama3.2")
 
 
+import sys
+
 def _call_ollama(prompt: str, timeout: int = 180) -> str:
-    """Direct Ollama API call — bypasses CrewAI overhead."""
+    """Direct Ollama API call — bypasses CrewAI overhead. Streams to terminal."""
     try:
         response = requests.post(
             f"{_OLLAMA_BASE_URL}/api/generate",
             json={
                 "model": _LLM_MODEL,
                 "prompt": prompt,
-                "stream": False,
+                "stream": True,
                 "options": {
                     "temperature": 0.05,   # Very low for deterministic JSON
                     "num_predict": 1500,
@@ -32,15 +34,29 @@ def _call_ollama(prompt: str, timeout: int = 180) -> str:
                     "stop": ["\n\nNote:", "\n\nExplanation:", "```"]
                 }
             },
+            stream=True,
             timeout=timeout
         )
         response.raise_for_status()
-        return response.json().get("response", "")
+        
+        full_text = []
+        print("\n\n=== [ OLLAMA ANALYSIS DATA STREAM ] ===", flush=True)
+        for line in response.iter_lines():
+            if line:
+                data = json.loads(line)
+                token = data.get("response", "")
+                sys.stdout.write(token)
+                sys.stdout.flush()
+                full_text.append(token)
+                
+        print("\n=== [ STREAM TERMINATED ] ===\n", flush=True)
+        return "".join(full_text)
+        
     except requests.exceptions.Timeout:
-        print(f"[Pipeline] LLM call timed out after {timeout}s")
+        print(f"\n[Pipeline] LLM call timed out after {timeout}s")
         return ""
     except Exception as e:
-        print(f"[Pipeline] LLM call failed: {e}")
+        print(f"\n[Pipeline] LLM call failed: {e}")
         return ""
 
 
@@ -148,11 +164,11 @@ def run_analysis(
     """
     Run the fast single-shot conflict analysis pipeline.
     """
-    # ── Check Cache ─────────────────────────────────────────────────────────
-    cached_result = analysis_cache.get(query)
-    if cached_result:
-        print(f"[Cache] Hit for query: '{query}'")
-        return cached_result
+    # ── Check Cache (DISABLED for Live Demonstration) ───────────────
+    # cached_result = analysis_cache.get(query)
+    # if cached_result:
+    #     print(f"[Cache] Hit for query: '{query}'")
+    #     return cached_result
 
     # ── Build context from retrieved docs ───────────────────────────────────
     context_parts = []

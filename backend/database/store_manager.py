@@ -1,5 +1,5 @@
 """
-StoreManager — Unified interface orchestrating FAISSStore + SQLiteStore.
+StoreManager — Unified interface orchestrating FAISSStore + SQLiteStore + MongoStore.
 
 This is THE single database abstraction used by main.py and the pipeline.
 
@@ -13,17 +13,19 @@ Key improvements over a raw FAISS wrapper:
    - FAISS index is MERGED with new vectors, not rebuilt from scratch.
    - /update is fast even as the corpus grows.
 
-3. Persistent across restarts
+3. Triple persistence (SQLite + FAISS + MongoDB Atlas)
    - FAISS index is saved to disk after every update.
    - SQLite metadata survives server restarts.
-   - /analyze works immediately after restart without re-ingesting data.
+   - MongoDB Atlas provides cloud backup and cross-device sync.
+   - All Atlas writes are ASYNC (fire-and-forget) — never blocks the pipeline.
 
 4. Rich statistics
-   - Combined stats from both stores for monitoring and the /health endpoint.
+   - Combined stats from both SQLite and FAISS for monitoring and the /health endpoint.
 
 5. Clean separation of concerns
-   - SQLite handles: dedup, metadata, stats, URL tracking.
+   - SQLite handles: dedup, metadata, stats, URL tracking (local).
    - FAISS handles: embedding storage, similarity search.
+   - MongoStore handles: cloud backup, text-search fallback for GNews misses.
    - StoreManager handles: coordination, error handling, logging.
 """
 
@@ -32,6 +34,7 @@ from langchain_core.documents import Document
 
 from .sqlite_store import SQLiteStore
 from .faiss_store import FAISSStore
+from .mongo_store import MongoStore
 
 
 class StoreManager:
@@ -53,6 +56,7 @@ class StoreManager:
     def __init__(self) -> None:
         self.sqlite = SQLiteStore()
         self.faiss  = FAISSStore()
+        self.mongo  = MongoStore()   # Atlas: disabled if MONGO_URI not set
         self._initialized = False
 
     # ─── Lifecycle ─────────────────────────────────────────────────────────
@@ -66,13 +70,17 @@ class StoreManager:
         loaded = self.faiss.load()
         self._initialized = True
 
+        # MongoDB Atlas — optional, non-blocking
+        atlas_ok = self.mongo.initialize()
+
         stats = self.sqlite.get_stats()
         vectors = self.faiss.vector_count()
         print(
             f"[StoreManager] Ready | "
             f"Articles: {stats['total_articles']} | "
             f"Chunks: {stats['total_chunks']} | "
-            f"Vectors: {vectors}"
+            f"Vectors: {vectors} | "
+            f"Atlas: {'✓ connected' if atlas_ok else '✗ disabled'}"
         )
         return loaded
 
@@ -119,7 +127,7 @@ class StoreManager:
             # ── Step 1: Embed and store in FAISS ──────────────────────────
             self.faiss.add_documents(new_docs)
 
-            # ── Step 2: Record metadata in SQLite ─────────────────────────
+            # ── Step 2: Record metadata in SQLite + Atlas (dual write) ────
             # Group chunks by source URL to track per-article chunk counts.
             by_url: dict[str, list[Document]] = {}
             no_url_docs: list[Document] = []
@@ -133,24 +141,39 @@ class StoreManager:
 
             for url, url_docs in by_url.items():
                 first = url_docs[0]
+                title      = first.metadata.get("title", "")
+                source     = first.metadata.get("source", "unknown")
+                pub_at     = first.metadata.get("published_at", "")
+                content    = first.page_content
+                chunk_cnt  = len(url_docs)
+
+                # SQLite (local — synchronous)
                 self.sqlite.add_article(
-                    url=url,
-                    title=first.metadata.get("title", ""),
-                    source=first.metadata.get("source", "unknown"),
-                    published_at=first.metadata.get("published_at", ""),
-                    content=first.page_content,
-                    chunk_count=len(url_docs),
+                    url=url, title=title, source=source,
+                    published_at=pub_at, content=content,
+                    chunk_count=chunk_cnt,
+                )
+                # Atlas (cloud — async, non-blocking)
+                self.mongo.add_article(
+                    url=url, title=title, source=source,
+                    published_at=pub_at, content=content,
+                    chunk_count=chunk_cnt,
                 )
 
             # Record any chunks without URLs (RSS entries without links)
             for doc in no_url_docs:
+                synthetic_url = f"no-url-{hash(doc.page_content[:100])}"
+                title   = doc.metadata.get("title", "")
+                source  = doc.metadata.get("source", "unknown")
+                pub_at  = doc.metadata.get("published_at", "")
+
                 self.sqlite.add_article(
-                    url=f"no-url-{hash(doc.page_content[:100])}",
-                    title=doc.metadata.get("title", ""),
-                    source=doc.metadata.get("source", "unknown"),
-                    published_at=doc.metadata.get("published_at", ""),
-                    content=doc.page_content,
-                    chunk_count=1,
+                    url=synthetic_url, title=title, source=source,
+                    published_at=pub_at, content=doc.page_content, chunk_count=1,
+                )
+                self.mongo.add_article(
+                    url=synthetic_url, title=title, source=source,
+                    published_at=pub_at, content=doc.page_content, chunk_count=1,
                 )
 
             # Update last-update timestamp in meta table
@@ -207,7 +230,12 @@ class StoreManager:
     # ─── Maintenance ───────────────────────────────────────────────────────
 
     def clear(self) -> None:
-        """Wipe both FAISS index and SQLite metadata."""
+        """Wipe FAISS index and SQLite metadata (Atlas data is kept as backup)."""
         self.faiss.clear()
         self.sqlite.clear()
-        print("[StoreManager] All stores cleared")
+        print("[StoreManager] Local stores cleared (Atlas data preserved)")
+
+    def close(self) -> None:
+        """Gracefully close all connections."""
+        self.sqlite.close()
+        self.mongo.close()

@@ -5,6 +5,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    headers: {
+      "Cross-Origin-Embedder-Policy": "unsafe-none",
+      "Cross-Origin-Opener-Policy": "unsafe-none",
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8000',
@@ -14,3 +18,4 @@ export default defineConfig({
     }
   }
 })
+

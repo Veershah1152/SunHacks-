@@ -1,0 +1,66 @@
+{
+  "query": "Sudan conflict",
+  "cached_at": "2026-04-10T13:59:14.478344",
+  "result": {
+    "risk": "MEDIUM",
+    "risk_numerical": 60,
+    "confidence": 0.8,
+    "trajectory": "ESCALATING",
+    "location": "Darfur, Sudan",
+    "latitude": 15.0,
+    "longitude": 30.0,
+    "summary": "The Sudan conflict has escalated with deadly drone strikes on hospitals, killing at least 10 people, including medical staff. The violence against healthcare is severely impacting the country's healthcare system. Paramilitary forces are using sexual violence as a 'war weapon' in Darfur.",
+    "reasoning": "The risk level is assigned as MEDIUM due to the escalating violence and impact on civilians, but not high enough to be classified as HIGH due to the ongoing conflict and humanitarian concerns.",
+    "hotspots": [
+      {
+        "name": "Darfur",
+        "lat": 15.0,
+        "lng": 30.0,
+        "intensity": 8
+      }
+    ],
+    "signals": [
+      {
+        "source": "UNHCR",
+        "text": "Paramilitary forces kill at least 10 people in hospital drone attack",
+        "intensity": 0.9
+      }
+    ],
+    "scenarios": {
+      "best": {
+        "description": "Ongoing conflict with minimal escalation",
+        "probability": "15%"
+      },
+      "likely": {
+        "description": "Escalation of violence and impact on civilians",
+        "probability": "60%"
+      },
+      "worst": {
+        "description": "Worst-case scenario: complete collapse of healthcare system and widespread human rights abuses",
+        "probability": "25%"
+      }
+    },
+    "civilian_impact": {
+      "casualties": "MODERATE",
+      "displacement": "Significant displacement expected",
+      "shortages": [
+        "Medical supplies",
+        "Legal access"
+      ]
+    },
+    "infrastructure": {
+      "status": "Critical infrastructure under pressure",
+      "chokepoints": [
+        "Healthcare system",
+        "Media access"
+      ]
+    },
+    "sources": [
+      {
+        "name": "Euronews",
+        "title": "Sex and the City star Kristin Davis urges more empathy for Sudan",
+        "type": "OSINT"
+      }
+    ]
+  }
+}

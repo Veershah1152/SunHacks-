@@ -31,28 +31,29 @@ export default function ConflictMap({ location, lat, lng, risk, hotspots = [] })
   const riskColor = getRiskColor(risk)
 
   return (
-    <div className="kinetic-card" style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '0', overflow: 'hidden' }}>
+    <div className="intel-card" style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '0', overflow: 'hidden' }}>
       <div style={{ padding: '24px', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000, pointerEvents: 'none' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div style={{ 
-            background: 'var(--surface-low)', 
+            background: 'rgba(27, 28, 29, 0.85)', 
             padding: '12px 16px', 
             borderRadius: 'var(--radius-lg)', 
-            border: '1px solid var(--glass-border)',
+            border: '1px solid rgba(255,255,255,0.06)',
             pointerEvents: 'auto',
-            backdropFilter: 'blur(8px)'
+            backdropFilter: 'blur(16px)'
           }}>
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-               <h4 style={{ margin: 0, fontFamily: 'var(--font-head)', fontSize: '0.8rem', color: 'var(--primary)', letterSpacing: '0.05em' }}>
+               <h4 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '0.8rem', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                  GEOSPATIAL INTEL
                </h4>
-               <span style={{ 
-                 fontSize: '0.65rem', 
-                 background: `${riskColor}33`, 
-                 color: riskColor, 
-                 padding: '2px 8px', 
-                 borderRadius: '4px',
-                 fontWeight: 800
+               <span className="risk-badge" style={{
+                 padding: '4px 8px',
+                 fontSize: '0.65rem',
+                 background: `${riskColor}33`,
+                 color: riskColor,
+                 borderColor: `${riskColor}66`,
+                 borderWidth: '1px',
+                 borderStyle: 'solid'
                }}>
                  {risk || 'PENDING'}
                </span>
@@ -60,15 +61,17 @@ export default function ConflictMap({ location, lat, lng, risk, hotspots = [] })
           </div>
           
           <div style={{ 
-            background: 'var(--surface-low)', 
+            background: 'rgba(27, 28, 29, 0.85)', 
             padding: '12px 16px', 
             borderRadius: 'var(--radius-lg)', 
-            border: '1px solid var(--glass-border)',
+            border: '1px solid rgba(255,255,255,0.06)',
             pointerEvents: 'auto',
-            backdropFilter: 'blur(8px)',
+            backdropFilter: 'blur(16px)',
             fontSize: '0.8rem',
             fontWeight: 700,
-            textTransform: 'uppercase'
+            textTransform: 'uppercase',
+            fontFamily: 'var(--font-display)',
+            letterSpacing: '0.08em'
           }}>
             📍 {typeof location === 'string' ? location : 'GLOBAL VIEW'}
           </div>
@@ -80,7 +83,7 @@ export default function ConflictMap({ location, lat, lng, risk, hotspots = [] })
           center={position} 
           zoom={4} 
           scrollWheelZoom={true}
-          style={{ height: '100%', width: '100%' }}
+          style={{ height: '100%', width: '100%', background: 'var(--surface-dim)' }}
         >
           <LayersControl position="topright">
             <LayersControl.BaseLayer checked name="Modern Dark">
@@ -101,7 +104,7 @@ export default function ConflictMap({ location, lat, lng, risk, hotspots = [] })
             <Marker position={position}>
               <Popup>
                 <div style={{ fontFamily: 'var(--font-body)', padding: '4px' }}>
-                    <strong style={{ color: riskColor }}>RISK: {risk}</strong> <br />
+                    <strong style={{ color: riskColor, fontFamily: 'var(--font-display)' }}>RISK: {risk}</strong> <br />
                     <span style={{ fontSize: '0.9rem' }}>{location}</span>
                 </div>
               </Popup>
@@ -122,8 +125,8 @@ export default function ConflictMap({ location, lat, lng, risk, hotspots = [] })
             >
               <Popup>
                 <div style={{ fontFamily: 'var(--font-body)', padding: '4px' }}>
-                    <strong>{spot.name}</strong> <br />
-                    <span>INTENSITY: {spot.intensity}/10</span>
+                    <strong style={{ fontFamily: 'var(--font-display)' }}>{spot.name}</strong> <br />
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>INTENSITY: {spot.intensity}/10</span>
                 </div>
               </Popup>
             </CircleMarker>
@@ -138,21 +141,21 @@ export default function ConflictMap({ location, lat, lng, risk, hotspots = [] })
           bottom: '24px', 
           right: '24px', 
           zIndex: 1000,
-          background: 'var(--surface-low)',
+          background: 'rgba(27, 28, 29, 0.85)',
           padding: '16px',
           borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--glass-border)',
-          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          backdropFilter: 'blur(16px)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '8px'
+          gap: '10px'
         }}>
-           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.7rem' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--risk-high)', boxShadow: '0 0 8px var(--risk-high)' }}></div>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.65rem', fontFamily: 'var(--font-display)', fontWeight: 800, letterSpacing: '0.08em' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--risk-high)', boxShadow: '0 0 12px var(--risk-high)' }}></div>
               <span>ESCALATING</span>
            </div>
-           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.7rem' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--risk-medium)', boxShadow: '0 0 8px var(--risk-medium)' }}></div>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.65rem', fontFamily: 'var(--font-display)', fontWeight: 800, letterSpacing: '0.08em' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--risk-medium)', boxShadow: '0 0 12px var(--risk-medium)' }}></div>
               <span>RISING TENSION</span>
            </div>
         </div>

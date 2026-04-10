@@ -1,0 +1,66 @@
+{
+  "query": "Sahel region",
+  "cached_at": "2026-04-10T12:33:14.484609",
+  "result": {
+    "risk": "MEDIUM",
+    "risk_numerical": 55,
+    "confidence": 0.72,
+    "trajectory": "STABLE",
+    "location": "Sahel region of Africa",
+    "latitude": 13.0,
+    "longitude": -2.0,
+    "summary": "The Sahel region has become the global epicentre of terrorism, accounting for nearly half of all terror-related deaths in 2025, with ongoing rivalries between Al Qaeda and ISIS affiliates.",
+    "reasoning": "The high frequency of conflicts and terrorist activities in the region indicate a medium risk level.",
+    "hotspots": [
+      {
+        "name": "Sahel region",
+        "lat": 13.0,
+        "lng": -2.0,
+        "intensity": 8
+      }
+    ],
+    "signals": [
+      {
+        "source": "Global Terrorism Report",
+        "text": "The Sahel region accounted for nearly half of all terror-related deaths in 2025.",
+        "intensity": 0.9
+      }
+    ],
+    "scenarios": {
+      "best": {
+        "description": "Improved regional cooperation and security measures lead to a decrease in terrorist activities.",
+        "probability": "15%"
+      },
+      "likely": {
+        "description": "Ongoing rivalries between Al Qaeda and ISIS affiliates continue, with potential escalation.",
+        "probability": "60%"
+      },
+      "worst": {
+        "description": "The region descends into chaos, with increased terrorist activities and instability.",
+        "probability": "25%"
+      }
+    },
+    "civilian_impact": {
+      "casualties": "MODERATE",
+      "displacement": "Significant displacement expected due to ongoing conflicts.",
+      "shortages": [
+        "Access to basic services",
+        "Security"
+      ]
+    },
+    "infrastructure": {
+      "status": "Institutional systems under pressure due to lack of state control.",
+      "chokepoints": [
+        "Regional governance",
+        "Economic stability"
+      ]
+    },
+    "sources": [
+      {
+        "name": "Global Terrorism Report",
+        "title": "Sahel region accounts for nearly half of all terror-related deaths.",
+        "type": "OSINT"
+      }
+    ]
+  }
+}

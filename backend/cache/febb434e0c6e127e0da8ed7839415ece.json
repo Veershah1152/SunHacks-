@@ -1,0 +1,66 @@
+{
+  "query": "Myanmar crisis",
+  "cached_at": "2026-04-10T13:50:21.858454",
+  "result": {
+    "risk": "MEDIUM",
+    "risk_numerical": 65,
+    "confidence": 0.8,
+    "trajectory": "ESCALATING",
+    "location": "Myanmar",
+    "summary": "Myanmar's food security is under threat due to fuel and fertilizer shortages, exacerbating a fragile economy already battered by civil war and runaway inflation.",
+    "reasoning": "The articles highlight the country's vulnerability to global energy shocks and its limited capacity to replenish essential stocks, indicating a medium risk level.",
+    "hotspots": [
+      {
+        "name": "Myanmar",
+        "lat": 21.0,
+        "lng": 96.0,
+        "intensity": 8
+      }
+    ],
+    "signals": [
+      {
+        "source": "Foreign Policy",
+        "text": "Southeast Asia faces spiking food prices, Myanmar will be hit worst.",
+        "intensity": 0.9
+      }
+    ],
+    "scenarios": {
+      "best": {
+        "description": "Myanmar's economy stabilizes with international aid and domestic reforms.",
+        "probability": "15%"
+      },
+      "likely": {
+        "description": "Myanmar experiences a prolonged food crisis, leading to increased poverty and instability.",
+        "probability": "60%"
+      },
+      "worst": {
+        "description": "Myanmar's situation deteriorates further, leading to widespread famine and humanitarian crises.",
+        "probability": "25%"
+      }
+    },
+    "civilian_impact": {
+      "casualties": "LOW",
+      "displacement": "Minimal displacement expected",
+      "shortages": [
+        "Food",
+        "Fuel"
+      ]
+    },
+    "infrastructure": {
+      "status": "Institutional systems under pressure",
+      "chokepoints": [
+        "Energy sector",
+        "Agricultural infrastructure"
+      ]
+    },
+    "sources": [
+      {
+        "name": "gnews",
+        "title": "Myanmar's food security in crisis as fuel, fertiliser shortages threaten fragile economy",
+        "type": "OSINT"
+      }
+    ],
+    "latitude": 0.0,
+    "longitude": 0.0
+  }
+}

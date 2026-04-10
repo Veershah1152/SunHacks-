@@ -23,6 +23,13 @@ from ingestion.rss_fetcher   import fetch_rss
 from processing.cleaner      import clean_documents
 from processing.chunker      import chunk_documents
 from pipeline.crew_runner    import run_analysis
+from auth_utils import verify_google_token, create_access_token, get_current_user_payload
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends
+
+
+security = HTTPBearer()
+
 
 # ─── Global Store (singleton) ────────────────────────────────────────────────
 store = StoreManager()
@@ -31,13 +38,15 @@ store = StoreManager()
 # ─── Lifespan (startup / shutdown) ──────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("=" * 60)
-    print("  Conflict Intelligence System — Starting Up")
+    print(f"  Store Ready: {store.is_ready()}")
+    print("  Registered Vectors: ", store.get_stats().get("total_vectors", 0))
+    print("  Routes Active: ", [r.path for r in app.routes])
     print("=" * 60)
     store.initialize()
+
     yield
     print("[Shutdown] Closing database connections...")
-    store.sqlite.close()
+    store.close()   # closes both SQLite and MongoDB Atlas
 
 
 # ─── App ─────────────────────────────────────────────────────────────────────
@@ -51,14 +60,20 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — allow Vite dev server and any localhost origin
+# CORS configuration
+# Note: allow_origins cannot be ["*"] when allow_credentials=True
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 
 
@@ -73,11 +88,13 @@ async def health_check():
     stats = store.get_stats()
     return {
         "status": "ok",
+        "version": "1.0.1-auth-fix",
         "store_ready": store.is_ready(),
         "ollama_url": os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
         "model": os.getenv("LLM_MODEL", "llama3.2"),
         "stats": stats,
     }
+
 
 
 @app.post("/update", tags=["Ingestion"])
@@ -159,7 +176,7 @@ async def analyze(
     fresh_docs = gnews_docs + rss_docs
     print(f"[/analyze] Fresh fetch: {len(gnews_docs)} GNews + {len(rss_docs)} RSS = {len(fresh_docs)} docs")
 
-    # ── Step 2: Decide which documents to use ─────────────────────────────────
+    # ── Step 2: Decide which documents to use ────────────────────────────────
     if fresh_docs:
         # Use fresh fetched docs directly (most relevant to the query)
         cleaned    = clean_documents(fresh_docs)
@@ -169,9 +186,25 @@ async def analyze(
 
         # Also store them in FAISS for future searches
         try:
-            store.add_documents(chunks)
+            store.add_documents(chunks)   # also dual-writes to Atlas
         except Exception as e:
             print(f"[/analyze] FAISS store warning (non-fatal): {e}")
+
+    elif store.mongo.is_enabled:
+        # ── Atlas fallback: GNews failed but we have cached articles in cloud ──
+        atlas_docs = store.mongo.search_articles(query, limit=10)
+        if atlas_docs:
+            print(f"[/analyze] GNews unavailable — using {len(atlas_docs)} Atlas cached articles")
+            docs_to_analyze = atlas_docs
+        elif store.is_ready():
+            # Final fallback: local FAISS index
+            docs_to_analyze = store.search(query, k=8)
+            print(f"[/analyze] Atlas empty for topic — using {len(docs_to_analyze)} FAISS docs")
+        else:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No articles found for '{query}'. GNews unavailable and Atlas cache is empty."
+            )
 
     elif store.is_ready():
         # Fallback: search existing FAISS index
@@ -218,6 +251,16 @@ async def analyze(
                 lat=_safe_float(result.get("latitude"), 0.0),
                 lng=_safe_float(result.get("longitude"), 0.0)
             )
+            # Mirror to Atlas (non-blocking — fire-and-forget)
+            store.mongo.add_analysis_record(
+                query=query,
+                risk=_safe_str(result.get("risk"), "MEDIUM"),
+                risk_numerical=_safe_int(result.get("risk_numerical"), 50),
+                confidence=_safe_float(result.get("confidence"), 0.5),
+                location=_safe_str(result.get("location"), "unknown"),
+                lat=_safe_float(result.get("latitude"), 0.0),
+                lng=_safe_float(result.get("longitude"), 0.0),
+            )
         except Exception as db_err:
             # DB write failure is non-fatal — still return the analysis
             print(f"[/analyze] DB record warning (non-fatal): {db_err}")
@@ -252,3 +295,172 @@ async def clear_store():
     """
     store.clear()
     return {"status": "ok", "message": "All data cleared. Call /update to re-ingest."}
+
+
+# ─── Authentication ──────────────────────────────────────────────────────────
+
+@app.post("/auth/login/google", tags=["Auth"])
+async def google_login(payload: dict):
+    """
+    Verifies Google ID Token, upserts user in MongoDB, and returns local JWT.
+    """
+    token = payload.get("token")
+    if not token:
+        raise HTTPException(status_code=400, detail="Missing Google token")
+
+    user_info = verify_google_token(token)
+    if not user_info:
+        raise HTTPException(status_code=401, detail="Invalid Google token")
+
+    # Save/Update user in MongoDB
+    user = store.mongo.upsert_user(
+        google_id=user_info["google_id"],
+        email=user_info["email"],
+        name=user_info["name"],
+        picture=user_info["picture"]
+    )
+
+    # Handle case where MongoDB might be disabled or upsert failed
+    uid = user.get("google_id") if user else user_info["google_id"]
+    email = user.get("email") if user else user_info.get("email")
+    name = user.get("name") if user else user_info.get("name")
+    picture = user.get("picture") if user else user_info.get("picture")
+
+    # Create local JWT with all essential profile details
+    access_token = create_access_token(data={
+        "sub": uid, 
+        "email": email,
+        "name": name,
+        "picture": picture
+    })
+    
+    return {
+        "status": "ok",
+        "token": access_token,
+        "user": user or user_info # Fallback to user_info if MongoDB disabled
+    }
+
+@app.post("/auth/login/bypass", tags=["Auth"])
+async def bypass_login():
+    """
+    Emergency Dev/Bypass login when Google Identity Services is broken via CORS.
+    """
+    mock_id = "command-center-bypass"
+    mock_email = "commander@vertex.sys"
+    mock_name = "Commander (Bypass)"
+
+    # Save/Update user in MongoDB
+    user = store.mongo.upsert_user(
+        google_id=mock_id,
+        email=mock_email,
+        name=mock_name,
+        picture="https://api.dicebear.com/7.x/bottts/svg?seed=commander"
+    )
+
+    uid = user.get("google_id") if user else mock_id
+    email = user.get("email") if user else mock_email
+
+    # Create local JWT
+    access_token = create_access_token(data={
+        "sub": uid, 
+        "email": email,
+        "name": mock_name,
+        "picture": "https://api.dicebear.com/7.x/bottts/svg?seed=commander"
+    })
+    
+    return {
+        "status": "ok",
+        "token": access_token,
+        "user": user or {
+            "google_id": mock_id,
+            "email": mock_email,
+            "name": mock_name,
+            "picture": "https://api.dicebear.com/7.x/bottts/svg?seed=commander"
+        }
+    }
+
+
+# --- In-memory fallback for local credentials ---
+_LOCAL_USERS = {}
+
+@app.post("/auth/register", tags=["Auth"])
+async def register_user(payload: dict):
+    email = payload.get("email")
+    password = payload.get("password")
+    name = payload.get("name", "Strategic Analyst")
+
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="Missing email or password")
+    
+    if email in _LOCAL_USERS:
+        raise HTTPException(status_code=400, detail="Email already registered")
+        
+    _LOCAL_USERS[email] = {
+        "password": password, # In production this MUST be hashed
+        "name": name,
+        "email": email,
+        "google_id": f"local_{email}"
+    }
+
+    # Save to MongoDB if available
+    store.mongo.upsert_user(
+        google_id=f"local_{email}",
+        email=email,
+        name=name,
+        picture="https://api.dicebear.com/7.x/bottts/svg?seed=" + email
+    )
+    
+    return {"status": "ok", "message": "User registered successfully"}
+
+@app.post("/auth/login/credentials", tags=["Auth"])
+async def credentials_login(payload: dict):
+    email = payload.get("email")
+    password = payload.get("password")
+
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="Missing email or password")
+        
+    user = _LOCAL_USERS.get(email)
+    
+    if not user or user["password"] != password:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    uid = user["google_id"]
+    name = user["name"]
+
+    access_token = create_access_token(data={
+        "sub": uid, 
+        "email": email,
+        "name": name,
+        "picture": "https://api.dicebear.com/7.x/bottts/svg?seed=" + email
+    })
+    
+    return {
+        "status": "ok",
+        "token": access_token,
+        "user": user
+    }
+
+@app.get("/auth/me", tags=["Auth"])
+async def get_me(auth: HTTPAuthorizationCredentials = Depends(security)):
+    """
+    Returns current user info from MongoDB using local JWT.
+    """
+    payload = get_current_user_payload(auth.credentials)
+    if not payload or not payload.get("sub"):
+        raise HTTPException(status_code=401, detail="Invalid session")
+
+    google_id = payload.get("sub")
+    user = store.mongo.get_user_by_google_id(google_id)
+    
+    # If not in MongoDB (because it's disabled or bypassed), recreate from payload
+    if not user:
+        return {
+            "google_id": google_id,
+            "email": payload.get("email", "unknown@cps.sys"),
+            "name": payload.get("name", "Strategic Analyst"),
+            "picture": payload.get("picture", "https://api.dicebear.com/7.x/bottts/svg?seed=analyst")
+        }
+
+    return user
+
