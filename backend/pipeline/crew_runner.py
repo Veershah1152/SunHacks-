@@ -57,6 +57,8 @@ def _call_ollama(prompt: str, timeout: int = 180) -> str:
         return ""
     except Exception as e:
         print(f"\n[Pipeline] LLM call failed: {e}")
+        import traceback
+        traceback.print_exc()
         return ""
 
 
@@ -155,6 +157,11 @@ def _extract_numbers_from_text(text: str, query: str) -> dict:
     if sum_match:
         result['summary'] = sum_match.group(1)
 
+    # Try to find reasoning
+    reason_match = re.search(r'"reasoning"\s*:\s*"([^"]+)"', text)
+    if reason_match:
+        result['reasoning'] = reason_match.group(1)
+
     return result
 
 
@@ -203,6 +210,13 @@ def run_analysis(
     print(f"[Pipeline] Sending prompt for: '{query}' ({len(context)} chars context)")
 
     raw_output = _call_ollama(prompt)
+    if not raw_output.strip():
+        print("[Pipeline] CRITICAL: Ollama returned NOTHING or crashed.")
+        return _fallback(source_urls, query, overrides={
+            "summary": "The local AI engine (Ollama) failed to respond. Check if it's running.",
+            "reasoning": "Connection to Gollama at port 11434 was made but resulted in an empty stream. This usually happens if the model is not loaded or the GPU memory is exhausted."
+        })
+
     print(f"[Pipeline] Raw output ({len(raw_output)} chars):\n{raw_output[:300]}...")
 
     # ── Parse & Validate ────────────────────────────────────────────────────
@@ -269,6 +283,14 @@ def _parse_and_validate(raw: str, source_urls: list[str], query: str = "") -> di
         # Strategy 5: scrape individual values from text
         scraped = _extract_numbers_from_text(raw, query)
         print(f"[Pipeline] Scraped values: {scraped}")
+        
+        # If the LLM failed to return any text, it's highly likely Ollama isn't running
+        if not raw.strip():
+            scraped.update({
+                "summary": "Analysis failed because the local AI model (Ollama) is not running or unreachable.",
+                "reasoning": "Backend connection to Ollama at port 11434 failed. Please ensure Ollama is running and the llama3.2 model is pulled."
+            })
+            
         return _fallback(source_urls, query, overrides=scraped)
 
     return _validate_schema(data, source_urls)
