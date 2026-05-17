@@ -10,6 +10,6 @@ services:
       - key: PORT
         value: 8000
       - key: OLLAMA_BASE_URL
-        value: "http://localhost:11434" # Need to change to managed endpoint or remove if using local
+        sync: false # Set this in Render dashboard to your public tunnel URL
       - key: PYTHON_VERSION
         value: "3.11.0"

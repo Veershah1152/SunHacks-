@@ -1,0 +1,66 @@
+{
+  "query": "conflict",
+  "cached_at": "2026-04-11T03:31:58.346920",
+  "result": {
+    "risk": "MEDIUM",
+    "risk_numerical": 55,
+    "confidence": 0.72,
+    "trajectory": "ESCALATING",
+    "location": "United States",
+    "latitude": 37.09,
+    "longitude": -95.71,
+    "summary": "Conflict in the region has escalated with new reports of military activity, indicating a rise in tensions.",
+    "reasoning": "The escalation of military activity suggests a heightened risk level.",
+    "hotspots": [
+      {
+        "name": "Key Location",
+        "lat": 40.71,
+        "lng": -74.0,
+        "intensity": 6
+      }
+    ],
+    "signals": [
+      {
+        "source": "Source Name",
+        "text": "New reports of military activity",
+        "intensity": 0.7
+      }
+    ],
+    "scenarios": {
+      "best": {
+        "description": "Immediate de-escalation and resolution",
+        "probability": "10%"
+      },
+      "likely": {
+        "description": "Ongoing tensions with potential escalation",
+        "probability": "60%"
+      },
+      "worst": {
+        "description": "Escalation into full-scale conflict",
+        "probability": "30%"
+      }
+    },
+    "civilian_impact": {
+      "casualties": "MODERATE",
+      "displacement": "Significant displacement expected",
+      "shortages": [
+        "Medical supplies",
+        "Food"
+      ]
+    },
+    "infrastructure": {
+      "status": "Critical infrastructure under threat",
+      "chokepoints": [
+        "Economic systems",
+        "Communication networks"
+      ]
+    },
+    "sources": [
+      {
+        "name": "Publisher",
+        "title": "Conflict News",
+        "type": "OSINT"
+      }
+    ]
+  }
+}

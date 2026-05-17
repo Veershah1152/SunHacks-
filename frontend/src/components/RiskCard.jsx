@@ -23,11 +23,11 @@ const RiskCard = React.memo(function RiskCard({ result, loading }) {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '24px 0' }}>
         <div 
           className={loading ? "skeleton" : "crt-flicker"}
-          style={{ fontSize: '4rem', fontWeight: 800, fontFamily: 'var(--font-display)', lineHeight: 1, marginBottom: '12px', color: 'white' }}
+          style={{ fontSize: '4rem', fontWeight: 800, fontFamily: 'var(--font-display)', lineHeight: 1, marginBottom: '12px', color: 'inherit' }}
         >
           {riskVal}
         </div>
-        <div className={`risk-badge ${cfg.cls}`}>
+        <div className={`risk-badge ${cfg.cls}`} style={{ color: 'white' }}>
           {cfg.label}
         </div>
       </div>

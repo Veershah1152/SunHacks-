@@ -19,8 +19,8 @@ const CustomTooltip = ({ active, payload, label, t }) => {
   if (!active || !payload?.length) return null;
   return (
     <div style={{
-      background: '#1f2021',
-      border: '1px solid rgba(255,255,255,0.08)',
+      background: 'var(--surface)',
+      border: '1px solid var(--outline-border)',
       borderRadius: '8px',
       padding: '10px 14px',
       fontSize: '0.75rem',
@@ -74,7 +74,7 @@ export default function TrendChart({ data, result }) {
     return (
       <div className="intel-card" style={{ height: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '12px' }}>
         <div style={{ fontSize: '2.5rem', opacity: 0.2 }}>📈</div>
-        <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>
+        <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>
           {t('charts.run_metrics_prompt')}
         </div>
       </div>
@@ -89,7 +89,7 @@ export default function TrendChart({ data, result }) {
           <span className="card-label" style={{ marginBottom: 0 }}>
             {t('intel.scorecard_title')}
           </span>
-          <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)' }}>{t('charts.more_analyses_prompt')}</span>
+          <span style={{ fontSize: '0.6rem', color: 'var(--text-tertiary)' }}>{t('charts.more_analyses_prompt')}</span>
         </div>
 
         {/* Manual bar chart for single result */}
@@ -97,7 +97,7 @@ export default function TrendChart({ data, result }) {
           {chartData.map((item) => (
             <div key={item.label}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '0.75rem' }}>
-                <span style={{ color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>{item.label.toUpperCase()}</span>
+                <span style={{ color: 'var(--text-tertiary)', fontWeight: 600 }}>{item.label.toUpperCase()}</span>
                 <span style={{ fontWeight: 800, color: item.fill }}>
                   {item.label === t('charts.trajectory')
                     ? (result?.trajectory ? t(`risk.${result.trajectory.toLowerCase().replace('-', '_')}_short`, { defaultValue: result.trajectory }) : t('risk.stable'))
@@ -105,7 +105,7 @@ export default function TrendChart({ data, result }) {
                   }
                 </span>
               </div>
-              <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ height: '8px', background: 'var(--surface-mid)', borderRadius: '4px', overflow: 'hidden' }}>
                 <div
                   style={{
                     height: '100%',
@@ -131,7 +131,7 @@ export default function TrendChart({ data, result }) {
         <span className="card-label" style={{ marginBottom: 0 }}>
           {t('intel.trajectory_over_time')}
         </span>
-        <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)' }}>{chartData.length} {t('charts.snapshots')}</span>
+        <span style={{ fontSize: '0.6rem', color: 'var(--text-tertiary)' }}>{chartData.length} {t('charts.snapshots')}</span>
       </div>
 
       <div style={{ flex: 1, width: '100%' }}>
@@ -147,10 +147,10 @@ export default function TrendChart({ data, result }) {
                 <stop offset="95%" stopColor="var(--risk-low)" stopOpacity={0}   />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--outline-border)" vertical={false} />
             <XAxis 
               dataKey="time"
-              stroke="rgba(255,255,255,0.4)"
+              stroke="var(--text-tertiary)"
               fontSize={10}
               tickLine={false}
               axisLine={false}

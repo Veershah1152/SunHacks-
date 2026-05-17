@@ -49,17 +49,17 @@ export default function AnalysisProgress({ currentStep, complete }) {
               style={{ 
                 flex: 1, 
                 height: '4px', 
-                background: isDone ? 'var(--risk-low)' : isActive ? 'var(--primary)' : 'rgba(255,255,255,0.06)',
+                background: isDone ? 'var(--risk-low)' : isActive ? 'var(--primary)' : 'var(--outline-border)',
                 borderRadius: '1px',
-                boxShadow: isActive ? '0 0 8px var(--primary)' : 'none',
-                opacity: (isDone || isActive) ? 1 : 0.3
+                boxShadow: isActive ? '0 0 8px var(--primary-container)' : 'none',
+                opacity: (isDone || isActive) ? 1 : 0.5
               }} 
             />
           );
         })}
       </div>
       <div style={{ marginTop: '8px', textAlign: 'center' }}>
-        <span style={{ fontSize: '0.6rem', fontWeight: 800, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+        <span style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
           {complete ? 'Analysis Terminal' : `Vectoring: ${STEPS[currentIdx]?.label || 'INIT'}`}
         </span>
       </div>

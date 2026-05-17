@@ -44,7 +44,7 @@ const ImpactCard = React.memo(function ImpactCard({ result, loading }) {
 
           {/* ── Civilian Cost ── */}
           <div className="impact-section">
-            <h4 style={{ fontSize: '0.8rem', color: 'white', marginBottom: '16px', opacity: 0.9, fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>{t('intel.civilian_cost')}</h4>
+            <h4 style={{ fontSize: '0.8rem', color: 'var(--text-primary)', marginBottom: '16px', opacity: 0.9, fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>{t('intel.civilian_cost')}</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ fontSize: '0.85rem' }}>
                 <div style={{ opacity: 0.6, marginBottom: '6px', fontSize: '0.65rem', fontWeight: 800 }}>{t('intel.casualty_risk')}</div>
@@ -72,8 +72,8 @@ const ImpactCard = React.memo(function ImpactCard({ result, loading }) {
           </div>
 
           {/* ── Operational Assets ── */}
-          <div className="impact-section" style={{ borderLeft: '1px solid rgba(255,255,255,0.06)', paddingLeft: '24px' }}>
-            <h4 style={{ fontSize: '0.8rem', color: 'white', marginBottom: '16px', opacity: 0.9, fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>{t('intel.operational_assets')}</h4>
+          <div className="impact-section" style={{ borderLeft: '1px solid var(--outline-border)', paddingLeft: '24px' }}>
+            <h4 style={{ fontSize: '0.8rem', color: 'var(--text-primary)', marginBottom: '16px', opacity: 0.9, fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>{t('intel.operational_assets')}</h4>
             <div style={{ fontSize: '0.85rem', marginBottom: '24px' }}>
               <div style={{ opacity: 0.6, marginBottom: '6px', fontSize: '0.65rem', fontWeight: 800 }}>{t('intel.base_condition')}</div>
               <div style={{ fontWeight: 600, lineHeight: 1.5, wordBreak: 'break-word', fontSize: '0.8rem' }}>
@@ -89,7 +89,7 @@ const ImpactCard = React.memo(function ImpactCard({ result, loading }) {
                     display: 'flex', 
                     alignItems: 'flex-start', 
                     gap: '8px',
-                    color: 'rgba(255,255,255,0.85)',
+                    color: 'var(--text-secondary)',
                     lineHeight: 1.5
                   }}>
                     <span style={{ color: 'var(--primary)', flexShrink: 0, marginTop: '2px', fontSize: '10px' }}>▶</span>

@@ -23,7 +23,7 @@ def create_briefing_agent() -> Agent:
             "Your reports are concise (readable in 60 seconds), evidence-based, "
             "and prioritize actionable insights over speculation."
         ),
-        llm=LLM(model="ollama/llama3.2", base_url="http://localhost:11434"),
+        llm=LLM(model=os.getenv("LLM_MODEL", "ollama/llama3.2"), base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")),
         verbose=True,
         allow_delegation=False,
     )

@@ -12,19 +12,17 @@ export default function ControlPanel({ query, onQueryChange, onAnalyze, onUpdate
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-      {/* Label */}
+      {/* Input Area */}
       <div>
-        <div className="control-label">{t('sidebar.intel_uplink')}</div>
-
         <div className="input-wrap">
-          <span className="input-icon" style={{ opacity: loading ? 0.3 : 0.6, transition: 'all 0.3s' }}>
+          <span className="input-icon" style={{ opacity: loading ? 0.3 : 0.6, transition: 'all 0.3s', top: '16px', transform: 'none' }}>
             {loading ? '⚡' : '◈'}
           </span>
-          <input
+          <textarea
             id="conflict-query"
             className="vertex-input"
-            type="text"
-            placeholder={loading ? t('system.analysing_target') : t('controls.placeholder')}
+            rows="3"
+            placeholder={loading ? t('system.analysing_target') : "Enter Region, Country, or specific topic..."}
 
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
@@ -32,8 +30,9 @@ export default function ControlPanel({ query, onQueryChange, onAnalyze, onUpdate
             disabled={loading}
             style={{ 
               paddingLeft: '44px',
-              borderColor: loading ? 'var(--primary-glow)' : '',
-              boxShadow: loading ? '0 0 15px var(--primary-glow)' : ''
+              paddingTop: '16px',
+              borderColor: loading ? 'var(--primary)' : 'var(--outline-border)',
+              display: 'block'
             }}
           />
         </div>
@@ -56,13 +55,15 @@ export default function ControlPanel({ query, onQueryChange, onAnalyze, onUpdate
 
       </div>
 
-      {/* Directives */}
+      {/* Quick Access Tags */}
       <div>
-        <div className="control-label" style={{ marginBottom: '8px' }}>{t('system.active_session')}</div>
-
-        <div className="topic-chips" style={{ gap: '4px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
           {EXAMPLE_QUERIES.map((q) => (
-            <button key={q} className="topic-chip" onClick={() => onQueryChange(q)} style={{ background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)' }}>
+            <button 
+              key={q} 
+              className="topic-chip" 
+              onClick={() => onQueryChange(q)} 
+            >
               {q}
             </button>
           ))}

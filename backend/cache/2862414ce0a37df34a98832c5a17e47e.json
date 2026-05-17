@@ -1,0 +1,65 @@
+{
+  "query": "Gaza ceasefire",
+  "cached_at": "2026-04-11T05:12:41.206646",
+  "result": {
+    "risk": "MEDIUM",
+    "risk_numerical": 55,
+    "confidence": 0.72,
+    "trajectory": "STABLE",
+    "location": "Gaza Strip",
+    "latitude": 31.53,
+    "longitude": 34.44,
+    "summary": "The Gaza ceasefire has shown limited progress, with challenges persisting despite the six-month agreement, and tensions between Lebanon and Israel are escalating.",
+    "reasoning": "The risk level is assigned as medium due to the ongoing challenges in maintaining the ceasefire and the increasing tensions between Lebanon and Israel.",
+    "hotspots": [
+      {
+        "name": "Gaza Strip",
+        "lat": 31.53,
+        "lng": 34.44,
+        "intensity": 6
+      }
+    ],
+    "signals": [
+      {
+        "source": "US-Backed Ceasefire Monitoring Center",
+        "text": "Israel blocked Spain from participating in the work of a US-led centre established to help stabilise post-war Gaza following the ceasefire.",
+        "intensity": 0.7
+      }
+    ],
+    "scenarios": {
+      "best": {
+        "description": "A sustained and peaceful ceasefire with minimal challenges",
+        "probability": "15%"
+      },
+      "likely": {
+        "description": "A fragile ceasefire with ongoing tensions between Lebanon and Israel, but no major escalation",
+        "probability": "60%"
+      },
+      "worst": {
+        "description": "A major escalation of violence leading to a breakdown in the ceasefire",
+        "probability": "25%"
+      }
+    },
+    "civilian_impact": {
+      "casualties": "LOW",
+      "displacement": "Minimal displacement expected",
+      "shortages": [
+        "Legal Access"
+      ]
+    },
+    "infrastructure": {
+      "status": "Institutional systems under pressure",
+      "chokepoints": [
+        "Legal system",
+        "Media access"
+      ]
+    },
+    "sources": [
+      {
+        "name": "BBC World News",
+        "title": "Lebanon and Israel officials to meet in US on Tuesday",
+        "type": "OSINT"
+      }
+    ]
+  }
+}

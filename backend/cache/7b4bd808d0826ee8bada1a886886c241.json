@@ -1,0 +1,66 @@
+{
+  "query": "test conflict",
+  "cached_at": "2026-04-11T03:29:59.917080",
+  "result": {
+    "risk": "MEDIUM",
+    "risk_numerical": 55,
+    "confidence": 0.72,
+    "trajectory": "STABLE",
+    "location": "United States",
+    "latitude": 37.09,
+    "longitude": -95.71,
+    "summary": "Major conflict and tensions are high, indicating a significant escalation of test conflict.",
+    "reasoning": "The articles suggest a high level of tension and conflict, warranting a medium risk assessment.",
+    "hotspots": [
+      {
+        "name": "Key Location",
+        "lat": 40.71,
+        "lng": -74.0,
+        "intensity": 6
+      }
+    ],
+    "signals": [
+      {
+        "source": "Source Name",
+        "text": "Major conflict and tensions high.",
+        "intensity": 0.7
+      }
+    ],
+    "scenarios": {
+      "best": {
+        "description": "Most optimistic realistic outcome",
+        "probability": "25%"
+      },
+      "likely": {
+        "description": "Most probable outcome based on current trends",
+        "probability": "55%"
+      },
+      "worst": {
+        "description": "Worst realistic outcome",
+        "probability": "20%"
+      }
+    },
+    "civilian_impact": {
+      "casualties": "LOW",
+      "displacement": "Minimal displacement expected",
+      "shortages": [
+        "Information",
+        "Legal Access"
+      ]
+    },
+    "infrastructure": {
+      "status": "Institutional systems under pressure",
+      "chokepoints": [
+        "Legal system",
+        "Media access"
+      ]
+    },
+    "sources": [
+      {
+        "name": "Publisher",
+        "title": "Article headline",
+        "type": "OSINT"
+      }
+    ]
+  }
+}

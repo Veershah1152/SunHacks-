@@ -8,7 +8,9 @@ const StrategicBriefCard = React.memo(function StrategicBriefCard({ result, load
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [typedText, setTypedText] = useState('');
   
+  const summary = result?.summary || '';
   const reasoning = result?.reasoning || t('intel.no_reasoning', { defaultValue: 'Consensus derived from multi-agent signal analysis.' });
+  const displayContent = summary ? `${summary}\n\n${reasoning}` : reasoning;
 
   // Typewriter effect
   useEffect(() => {
@@ -16,12 +18,12 @@ const StrategicBriefCard = React.memo(function StrategicBriefCard({ result, load
     setTypedText('');
     let i = 0;
     const interval = setInterval(() => {
-      setTypedText(reasoning.slice(0, i));
+      setTypedText(displayContent.slice(0, i));
       i++;
-      if (i > reasoning.length) clearInterval(interval);
+      if (i > displayContent.length) clearInterval(interval);
     }, 15);
     return () => clearInterval(interval);
-  }, [reasoning, loading, result]);
+  }, [displayContent, loading, result]);
 
   const handleSpeak = () => {
     if (isSpeaking) {
@@ -62,7 +64,7 @@ const StrategicBriefCard = React.memo(function StrategicBriefCard({ result, load
           style={{ 
             background: 'none', 
             border: 'none', 
-            color: isSpeaking ? 'var(--primary)' : 'rgba(255,255,255,0.3)', 
+            color: isSpeaking ? 'var(--primary)' : 'var(--text-tertiary)', 
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -88,48 +90,49 @@ const StrategicBriefCard = React.memo(function StrategicBriefCard({ result, load
           background: 'var(--primary)',
           opacity: 0.2
         }} />
-        <p style={{
-          fontSize: '1.1rem',
-          fontWeight: 400,
-          lineHeight: 1.8,
-          color: 'rgba(255,255,255,0.9)',
-          fontFamily: 'var(--font-body)',
-          marginBottom: '20px',
+        <div className="typewriter-text" style={{ 
+          fontSize: '1rem', 
+          lineHeight: 1.6, 
+          color: 'var(--text-primary)', 
+          whiteSpace: 'pre-wrap',
+          minHeight: '120px',
+          fontWeight: 500,
           fontStyle: 'italic',
           paddingLeft: '10px',
-          minHeight: '100px'
+          marginBottom: '20px'
         }}>
           "{typedText}"<span className="crt-flicker" style={{ borderLeft: '8px solid var(--primary)', marginLeft: '4px' }}>&nbsp;</span>
-        </p>
+        </div>
 
         {/* Intelligence Metrics Row */}
-        <div style={{ display: 'flex', gap: '40px', marginTop: '24px', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '16px' }}>
+        <div style={{ display: 'flex', gap: '40px', marginTop: '24px', borderTop: '1px solid var(--outline-border)', paddingTop: '16px' }}>
           <div>
             <div className="control-label" style={{ fontSize: '0.55rem', opacity: 0.5 }}>{t('intel.confidence_score')}</div>
             <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary)' }}>{((result.confidence || 0.5) * 100).toFixed(0)}%</div>
           </div>
           <div>
             <div className="control-label" style={{ fontSize: '0.55rem', opacity: 0.5 }}>{t('intel.signal_depth')}</div>
-            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'white' }}>{t('intel.matched')}</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>{t('intel.matched')}</div>
           </div>
           {result.sources && result.sources.length > 0 && (
             <div style={{ flex: 1, textAlign: 'right' }}>
               <div className="control-label" style={{ fontSize: '0.55rem', opacity: 0.5 }}>{t('intel.evidence_footprint')}</div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '4px' }}>
-                {result.sources.slice(0, 5).map((s, i) => (
-                  <a key={i} href={s} target="_blank" rel="noreferrer" style={{ width: '8px', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '1px', display: 'block' }} title={s} />
-                ))}
+                {result.sources.slice(0, 5).map((s, i) => {
+                  const url = typeof s === 'object' ? s.url || s.link || '#' : s;
+                  const title = typeof s === 'object' ? s.title || s.name : 'Source';
+                  return (
+                    <a key={i} href={url} target="_blank" rel="noreferrer" style={{ width: '8px', height: '8px', background: 'var(--text-tertiary)', borderRadius: '1px', display: 'block' }} title={title} />
+                  );
+                })}
               </div>
             </div>
           )}
         </div>
 
         {/* Verification Signature */}
-        <div style={{ marginTop: '24px', paddingTop: '12px', borderTop: '2px solid rgba(255,255,255,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.15)', fontFamily: 'monospace' }}>
-            MD5_AUTH: {Math.random().toString(36).substring(7).toUpperCase()}..{Math.random().toString(36).substring(7).toUpperCase()}
-          </div>
-          <div style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--primary)', opacity: 0.4, letterSpacing: '0.2em' }}>
+        <div style={{ marginTop: '24px', paddingTop: '12px', borderTop: '2px solid var(--outline-border)', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+          <div style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--primary)', opacity: 0.6, letterSpacing: '0.1em' }}>
             {t('intel.verified_consensus')}
           </div>
         </div>

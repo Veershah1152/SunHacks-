@@ -349,8 +349,11 @@ async def google_login(payload: dict):
 @app.post("/auth/login/bypass", tags=["Auth"])
 async def bypass_login():
     """
-    Emergency Dev/Bypass login when Google Identity Services is broken via CORS.
+    Emergency Dev/Bypass login — only enabled when ENABLE_BYPASS_LOGIN=true in env.
     """
+    if os.getenv("ENABLE_BYPASS_LOGIN", "false").lower() != "true":
+        raise HTTPException(status_code=403, detail="Bypass login is disabled in this environment.")
+
     mock_id = "command-center-bypass"
     mock_email = "commander@vertex.sys"
     mock_name = "Commander (Bypass)"
@@ -386,65 +389,68 @@ async def bypass_login():
     }
 
 
-# --- In-memory fallback for local credentials ---
-_LOCAL_USERS = {}
+# --- In-memory credentials store with bcrypt hashing ---
+import bcrypt
+_LOCAL_USERS: dict[str, dict] = {}
+
+def _hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+def _verify_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode(), hashed.encode())
+
 
 @app.post("/auth/register", tags=["Auth"])
 async def register_user(payload: dict):
-    email = payload.get("email")
-    password = payload.get("password")
-    name = payload.get("name", "Strategic Analyst")
+    email    = payload.get("email", "").strip().lower()
+    password = payload.get("password", "")
+    name     = payload.get("name", "Strategic Analyst")
 
     if not email or not password:
         raise HTTPException(status_code=400, detail="Missing email or password")
-    
+    if len(password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
     if email in _LOCAL_USERS:
         raise HTTPException(status_code=400, detail="Email already registered")
-        
+
     _LOCAL_USERS[email] = {
-        "password": password, # In production this MUST be hashed
-        "name": name,
-        "email": email,
-        "google_id": f"local_{email}"
+        "password_hash": _hash_password(password),  # bcrypt hashed — never stored plaintext
+        "name":          name,
+        "email":         email,
+        "google_id":     f"local_{email}"
     }
 
-    # Save to MongoDB if available
     store.mongo.upsert_user(
         google_id=f"local_{email}",
         email=email,
         name=name,
         picture="https://api.dicebear.com/7.x/bottts/svg?seed=" + email
     )
-    
     return {"status": "ok", "message": "User registered successfully"}
+
 
 @app.post("/auth/login/credentials", tags=["Auth"])
 async def credentials_login(payload: dict):
-    email = payload.get("email")
-    password = payload.get("password")
+    email    = payload.get("email", "").strip().lower()
+    password = payload.get("password", "")
 
     if not email or not password:
         raise HTTPException(status_code=400, detail="Missing email or password")
-        
+
     user = _LOCAL_USERS.get(email)
-    
-    if not user or user["password"] != password:
+    if not user or not _verify_password(password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    uid = user["google_id"]
-    name = user["name"]
-
     access_token = create_access_token(data={
-        "sub": uid, 
-        "email": email,
-        "name": name,
+        "sub":     user["google_id"],
+        "email":   email,
+        "name":    user["name"],
         "picture": "https://api.dicebear.com/7.x/bottts/svg?seed=" + email
     })
-    
     return {
         "status": "ok",
-        "token": access_token,
-        "user": user
+        "token":  access_token,
+        "user":   {k: v for k, v in user.items() if k != "password_hash"}  # never expose hash
     }
 
 @app.get("/auth/me", tags=["Auth"])

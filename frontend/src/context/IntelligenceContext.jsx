@@ -181,9 +181,10 @@ export function IntelligenceProvider({ children }) {
     status, setStatus,
     analysisStep, setAnalysisStep,
     autoCycleEnabled, setAutoCycleEnabled,
+    cache, setCache,
     handleUpdate,
     handleAnalyze
-  }), [query, result, trends, loading, updating, error, status, analysisStep, autoCycleEnabled, handleUpdate, handleAnalyze]);
+  }), [query, result, trends, loading, updating, error, status, analysisStep, autoCycleEnabled, cache, handleUpdate, handleAnalyze]);
 
   return (
     <IntelligenceContext.Provider value={value}>

@@ -1,64 +1,65 @@
 {
   "query": "Sudan conflict",
-  "cached_at": "2026-04-10T17:59:03.928620",
+  "cached_at": "2026-04-11T02:40:42.019787",
   "result": {
     "risk": "MEDIUM",
-    "risk_numerical": 55,
-    "confidence": 0.72,
+    "risk_numerical": 50,
+    "confidence": 0.4,
     "trajectory": "STABLE",
-    "location": "Sudan",
-    "latitude": 15.0,
-    "longitude": 31.0,
-    "summary": "The Sudan conflict has led to a dire situation, with ongoing civil war between the army and paramilitary forces causing devastating effects on civilians and infrastructure.",
-    "reasoning": "The articles highlight the escalating violence against healthcare, drone strikes on hospitals, and the impact on the country's healthcare system, indicating a medium-level risk of further instability.",
-    "hotspots": [
-      {
-        "name": "White Nile province",
-        "lat": 15.0,
-        "lng": 31.0,
-        "intensity": 6
-      }
-    ],
-    "signals": [
-      {
-        "source": "Euronews",
-        "text": "Paramilitary forces kill at least 10 people in hospital drone attack",
-        "intensity": 0.7
-      }
-    ],
+    "location": "Unknown",
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "summary": "Analysis of 'Sudan conflict' could not be completed. Please try again.",
+    "reasoning": "Insufficient data to produce a reliable assessment.",
+    "hotspots": [],
+    "signals": [],
     "scenarios": {
       "best": {
-        "description": "Ongoing conflict subsides, and a peaceful resolution is reached",
-        "probability": "25%"
+        "description": "Situation resolves without escalation",
+        "probability": "30%"
       },
       "likely": {
-        "description": "Conflict escalates further, with increased violence against civilians and infrastructure",
-        "probability": "55%"
+        "description": "Current trajectory continues",
+        "probability": "50%"
       },
       "worst": {
-        "description": "Total collapse of the government, leading to widespread chaos and instability",
+        "description": "Significant negative development",
         "probability": "20%"
       }
     },
     "civilian_impact": {
-      "casualties": "LOW",
-      "displacement": "Minimal displacement expected",
-      "shortages": [
-        "Medical supplies",
-        "Legal access"
-      ]
+      "casualties": "UNKNOWN",
+      "displacement": "Monitoring required",
+      "shortages": []
     },
     "infrastructure": {
-      "status": "Institutional systems under pressure",
-      "chokepoints": [
-        "Healthcare system",
-        "Media access"
-      ]
+      "status": "Unknown",
+      "chokepoints": []
     },
     "sources": [
       {
-        "name": "gnews",
-        "title": "Sudan Army Conducts Airstrike, 56 Dead and 107 Injured",
+        "name": "https://www.devdiscourse.com/article/law-order/3869006-un-expert-warns-of-escalating-child-trafficking-crisis-amid-deepening-conflict-in-south-sudan",
+        "title": "Source Document",
+        "type": "OSINT"
+      },
+      {
+        "name": "https://www.patrika.com/en/world-news/sudan-army-conducts-airstrike-56-dead-and-107-injured-20489060",
+        "title": "Source Document",
+        "type": "OSINT"
+      },
+      {
+        "name": "https://www.euronews.com/my-europe/2026/04/07/sex-and-the-city-star-kristin-davis-urges-more-empathy-for-sudan",
+        "title": "Source Document",
+        "type": "OSINT"
+      },
+      {
+        "name": "https://www.thehindu.com/news/international/paramilitary-forces-in-sudan-kill-people-in-hospital-drone-attack-says-medical-group/article70819602.ece",
+        "title": "Source Document",
+        "type": "OSINT"
+      },
+      {
+        "name": "https://www.devdiscourse.com/article/health/3861419-sudans-healthcare-hit-deadly-drone-strikes-escalate",
+        "title": "Source Document",
         "type": "OSINT"
       }
     ]

@@ -25,15 +25,15 @@ const SignalsCard = React.memo(function SignalsCard({ result, loading }) {
                 </div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '12px' }}>
-                <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', fontWeight: 700 }}>{t('intel.intensity')}</div>
-                <div style={{ fontWeight: 800, color: sig.intensity > 0.7 ? 'var(--risk-high-on)' : 'var(--primary)', fontFamily: 'var(--font-display)' }}>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', fontWeight: 700 }}>{t('intel.intensity')}</div>
+                <div style={{ fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>
                   {Math.round(sig.intensity * 100)}%
                 </div>
               </div>
             </div>
           ))
         ) : (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>
             {t('intel.no_signals')}
           </div>
         )}

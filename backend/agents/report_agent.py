@@ -28,7 +28,7 @@ def create_report_agent() -> Agent:
             "Your output must be syntactically valid JSON at all times. "
             "You aggregate facts from previous analysts without adding speculation."
         ),
-        llm=LLM(model="ollama/llama3.2", base_url="http://localhost:11434"),
+        llm=LLM(model=os.getenv("LLM_MODEL", "ollama/llama3.2"), base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")),
         verbose=True,
         allow_delegation=False,
     )

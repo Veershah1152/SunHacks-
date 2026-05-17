@@ -27,7 +27,7 @@ function ChangeView({ center }) {
   return null
 }
 
-export default function ConflictMap({ location, lat, lng, risk, hotspots = [] }) {
+export default function ConflictMap({ location, lat, lng, risk, hotspots = [], theme = 'light' }) {
   const { t } = useTranslation();
   const position = [lat || 0, lng || 0]
   const riskColor = getRiskColor(risk)
@@ -37,12 +37,13 @@ export default function ConflictMap({ location, lat, lng, risk, hotspots = [] })
       <div style={{ padding: '24px', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000, pointerEvents: 'none' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div style={{ 
-            background: 'rgba(27, 28, 29, 0.85)', 
+            background: 'var(--surface)', 
             padding: '12px 16px', 
             borderRadius: 'var(--radius-lg)', 
-            border: '1px solid rgba(255,255,255,0.06)',
+            border: '1px solid var(--outline-border)',
             pointerEvents: 'auto',
-            backdropFilter: 'blur(16px)'
+            backdropFilter: 'blur(16px)',
+            boxShadow: 'var(--shadow-card)'
           }}>
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                <h4 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '0.8rem', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
@@ -63,17 +64,19 @@ export default function ConflictMap({ location, lat, lng, risk, hotspots = [] })
           </div>
           
           <div style={{ 
-            background: 'rgba(27, 28, 29, 0.85)', 
+            background: 'var(--surface)', 
             padding: '12px 16px', 
             borderRadius: 'var(--radius-lg)', 
-            border: '1px solid rgba(255,255,255,0.06)',
+            border: '1px solid var(--outline-border)',
             pointerEvents: 'auto',
             backdropFilter: 'blur(16px)',
             fontSize: '0.8rem',
             fontWeight: 700,
+            color: 'var(--text-primary)',
             textTransform: 'uppercase',
             fontFamily: 'var(--font-display)',
-            letterSpacing: '0.08em'
+            letterSpacing: '0.08em',
+            boxShadow: 'var(--shadow-card)'
           }}>
             📍 {typeof location === 'string' ? location : t('intel.global_view')}
           </div>
@@ -88,10 +91,13 @@ export default function ConflictMap({ location, lat, lng, risk, hotspots = [] })
           style={{ height: '100%', width: '100%', background: 'var(--surface-dim)' }}
         >
           <LayersControl position="topright">
-            <LayersControl.BaseLayer checked name="Modern Dark">
+             <LayersControl.BaseLayer checked name="Carto Theme">
               <TileLayer
+                 key={theme}
                  attribution='&copy; CARTO'
-                 url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                 url={theme === 'dark' 
+                   ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                   : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"}
               />
             </LayersControl.BaseLayer>
             <LayersControl.BaseLayer name="Satellite">
@@ -143,20 +149,21 @@ export default function ConflictMap({ location, lat, lng, risk, hotspots = [] })
           bottom: '24px', 
           right: '24px', 
           zIndex: 1000,
-          background: 'rgba(27, 28, 29, 0.85)',
+          background: 'var(--surface)',
           padding: '16px',
           borderRadius: 'var(--radius-lg)',
-          border: '1px solid rgba(255,255,255,0.06)',
+          border: '1px solid var(--outline-border)',
           backdropFilter: 'blur(16px)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '10px'
+          gap: '10px',
+          boxShadow: 'var(--shadow-card)'
         }}>
-           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.65rem', fontFamily: 'var(--font-display)', fontWeight: 800, letterSpacing: '0.08em' }}>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.65rem', color: 'var(--text-primary)', fontFamily: 'var(--font-display)', fontWeight: 800, letterSpacing: '0.08em' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--risk-high)', boxShadow: '0 0 12px var(--risk-high)' }}></div>
               <span>{t('intel.escalating')}</span>
            </div>
-           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.65rem', fontFamily: 'var(--font-display)', fontWeight: 800, letterSpacing: '0.08em' }}>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.65rem', color: 'var(--text-primary)', fontFamily: 'var(--font-display)', fontWeight: 800, letterSpacing: '0.08em' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--risk-medium)', boxShadow: '0 0 12px var(--risk-medium)' }}></div>
               <span>{t('intel.rising_tension')}</span>
            </div>

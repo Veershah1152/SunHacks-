@@ -1,69 +1,65 @@
 {
-  "query": "iran war",
-  "cached_at": "2026-04-10T14:51:13.891585",
+  "query": "Iran war",
+  "cached_at": "2026-04-11T02:37:05.113164",
   "result": {
     "risk": "MEDIUM",
-    "risk_numerical": 60,
-    "confidence": 0.75,
-    "trajectory": "ESCALATING",
-    "location": "Middle East",
-    "latitude": 32.86,
-    "longitude": 35.22,
-    "summary": "The Iran war is causing deflation in China, impacting producers and energy costs, while also affecting the Indian stock market and causing volatility in global markets.",
-    "reasoning": "The articles suggest a medium risk level due to the impact on global markets and economies.",
-    "hotspots": [
-      {
-        "name": "Gaza",
-        "lat": 31.53,
-        "lng": 34.44,
-        "intensity": 8
-      }
-    ],
-    "signals": [
-      {
-        "source": "US President Donald Trump",
-        "text": "The US is at war with Iran",
-        "intensity": 0.9
-      },
-      {
-        "source": "Palestinian Ambassador to India",
-        "text": "The ceasefire in Iran is a facade",
-        "intensity": 0.8
-      }
-    ],
+    "risk_numerical": 50,
+    "confidence": 0.4,
+    "trajectory": "STABLE",
+    "location": "Unknown",
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "summary": "Analysis of 'Iran war' could not be completed. Please try again.",
+    "reasoning": "Insufficient data to produce a reliable assessment.",
+    "hotspots": [],
+    "signals": [],
     "scenarios": {
       "best": {
-        "description": "A fragile peace holds, with minimal casualties and displacement",
-        "probability": "15%"
+        "description": "Situation resolves without escalation",
+        "probability": "30%"
       },
       "likely": {
-        "description": "A stalemate ensues, with ongoing tensions and potential for escalation",
-        "probability": "60%"
+        "description": "Current trajectory continues",
+        "probability": "50%"
       },
       "worst": {
-        "description": "A full-scale conflict breaks out, causing widespread destruction and loss of life",
-        "probability": "25%"
+        "description": "Significant negative development",
+        "probability": "20%"
       }
     },
     "civilian_impact": {
-      "casualties": "MODERATE",
-      "displacement": "Significant displacement expected in Gaza",
-      "shortages": [
-        "Medical supplies",
-        "Food"
-      ]
+      "casualties": "UNKNOWN",
+      "displacement": "Monitoring required",
+      "shortages": []
     },
     "infrastructure": {
-      "status": "Critical infrastructure under threat",
-      "chokepoints": [
-        "Oil refineries",
-        "Transportation hubs"
-      ]
+      "status": "Unknown",
+      "chokepoints": []
     },
     "sources": [
       {
-        "name": "GNews",
-        "title": "Trump bashes popular right-wing commentators for criticizing Iran war",
+        "name": "https://timesofindia.indiatimes.com/business/international-business/us-inflation-spike-cpi-jumps-to-3-3-in-march-as-iran-war-lifts-energy-costs/articleshow/130172845.cms",
+        "title": "Source Document",
+        "type": "OSINT"
+      },
+      {
+        "name": "https://www.ajc.com/news/2026/04/soaring-gas-prices-leads-to-biggest-monthly-inflation-spike-in-four-years-in-march/",
+        "title": "Source Document",
+        "type": "OSINT"
+      },
+      {
+        "name": "https://www.ajc.com/news/2026/04/soaring-gas-prices-leads-to-biggest-monthly-inflation-spike-in-four-years-in-march/",
+        "title": "Source Document",
+        "type": "OSINT"
+      },
+      {
+        "name": "https://www.politico.com/news/2026/04/10/inflation-surge-trump-iran-gasoline-00866768",
+        "title": "Source Document",
+        "type": "OSINT"
+      },
+      {
+        "name": "https://www.cp24.com/news/world/2026/04/10/what-is-israels-war-in-lebanon-and-why-could-it-shatter-the-iran-ceasefire/",
+        "title": "Source Document",
         "type": "OSINT"
       }
     ]

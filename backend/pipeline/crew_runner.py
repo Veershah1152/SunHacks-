@@ -1,76 +1,97 @@
 """
-FastPipeline — Single-shot LLM analysis.
-Optimized for local Ollama (llama3.2) to reliably produce structured JSON.
+FastPipeline — Single-shot LLM analysis via local Ollama.
+Embeddings handled separately by HuggingFace (faiss_store.py).
 """
 
 import json
 import re
 import os
+import sys
 import requests
 from langchain_core.documents import Document
 from pipeline.cache_manager import analysis_cache
 
-_MAX_CONTEXT_CHARS = 3000
-_OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-_LLM_MODEL = os.getenv("LLM_MODEL", "llama3.2")
+_MAX_CONTEXT_CHARS = 6000
+_OLLAMA_BASE_URL   = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+_LLM_MODEL         = os.getenv("LLM_MODEL", "llama3.2:latest")
 
 
-import sys
+# ─── Ollama Caller ────────────────────────────────────────────────────────────
 
 def _call_ollama(prompt: str, timeout: int = 180) -> str:
-    """Direct Ollama API call — bypasses CrewAI overhead. Streams to terminal."""
+    """Direct Ollama API call with streaming."""
     try:
+        url = f"{_OLLAMA_BASE_URL}/api/generate"
+        print(f"[Pipeline] Calling Ollama at {url} (model: {_LLM_MODEL})...")
+
         response = requests.post(
-            f"{_OLLAMA_BASE_URL}/api/generate",
+            url,
             json={
                 "model": _LLM_MODEL,
                 "prompt": prompt,
                 "stream": True,
                 "options": {
-                    "temperature": 0.05,   # Very low for deterministic JSON
+                    "temperature": 0.1,
                     "num_predict": 1500,
                     "top_p": 0.9,
                     "repeat_penalty": 1.1,
-                    "stop": ["\n\nNote:", "\n\nExplanation:", "```"]
                 }
             },
             stream=True,
             timeout=timeout
         )
-        response.raise_for_status()
-        
+
+        if response.status_code != 200:
+            print(f"[Pipeline] Ollama HTTP {response.status_code}: {response.text[:200]}")
+            return ""
+
         full_text = []
-        print("\n\n=== [ OLLAMA ANALYSIS DATA STREAM ] ===", flush=True)
+        has_started = False
+        print("\n=== [ OLLAMA STREAM ] ===", flush=True)
+
         for line in response.iter_lines():
             if line:
-                data = json.loads(line)
-                token = data.get("response", "")
-                sys.stdout.write(token)
-                sys.stdout.flush()
-                full_text.append(token)
-                
-        print("\n=== [ STREAM TERMINATED ] ===\n", flush=True)
+                try:
+                    data  = json.loads(line)
+                    token = data.get("response", "")
+                    if token:
+                        has_started = True
+                        sys.stdout.write(token)
+                        sys.stdout.flush()
+                        full_text.append(token)
+                    if data.get("done"):
+                        break
+                except Exception:
+                    continue
+
+        if not has_started:
+            print("\n[Pipeline] WARNING: Ollama stream was empty!")
+        else:
+            print("\n=== [ STREAM DONE ] ===\n", flush=True)
+
         return "".join(full_text)
-        
+
     except requests.exceptions.Timeout:
-        print(f"\n[Pipeline] LLM call timed out after {timeout}s")
+        print(f"[Pipeline] Ollama timed out after {timeout}s")
+        return ""
+    except requests.exceptions.ConnectionError:
+        print(f"[Pipeline] Cannot connect to Ollama at {_OLLAMA_BASE_URL}. Is it running?")
         return ""
     except Exception as e:
-        print(f"\n[Pipeline] LLM call failed: {e}")
+        print(f"[Pipeline] Ollama call failed: {e}")
+        import traceback; traceback.print_exc()
         return ""
 
 
+# ─── Prompt Builder ───────────────────────────────────────────────────────────
+
 def _build_master_prompt(query: str, context: str, lang_name: str = "English") -> str:
-    """
-    Build a tight, example-driven prompt that local LLMs can follow reliably.
-    """
     return f"""You are an intelligence analyst. Read the articles below about "{query}" and produce a JSON analysis.
 
-CRITICAL INSTRUCTION: All text values in your JSON output (summary, reasoning, description, status, casualties, etc.) MUST be written in {lang_name}. Do NOT use English for these values. Keep the JSON keys exactly as shown in English.
+CRITICAL INSTRUCTION: All text values in your JSON output (summary, reasoning, description, status, casualties, etc.) MUST be written in {lang_name}. Keep the JSON keys in English.
 
 ARTICLES:
 {context}
-
 
 Based ONLY on the articles above, fill in this JSON template. Replace every value with your real analysis of "{query}":
 
@@ -111,52 +132,36 @@ Based ONLY on the articles above, fill in this JSON template. Replace every valu
 
 CRITICAL RULES:
 1. Output ONLY the JSON. No text before or after it.
-2. Do NOT copy the example values. Use values that reflect "{query}" from the articles.
-3. risk_numerical must be a NUMBER between 0 and 100. Use 70-100 for HIGH risk, 31-69 for MEDIUM, 0-30 for LOW.
+2. Do NOT copy the example values. Use real analysis of "{query}" from the articles.
+3. risk_numerical must be a NUMBER between 0 and 100.
 4. confidence must be a NUMBER between 0.0 and 1.0.
 5. latitude and longitude must be real coordinates for the primary location.
-6. All text must describe "{query}" specifically, not generic conflicts."""
+6. All text must describe "{query}" specifically."""
 
+
+# ─── Emergency regex fallback ─────────────────────────────────────────────────
 
 def _extract_numbers_from_text(text: str, query: str) -> dict:
-    """
-    Emergency fallback: scrape any numeric risk/confidence values
-    directly from the LLM text if JSON parsing fails completely.
-    """
     result = {}
-
-    # Try to find risk_numerical
-    risk_num_match = re.search(r'"risk_numerical"\s*:\s*(\d+)', text)
-    if risk_num_match:
-        result['risk_numerical'] = int(risk_num_match.group(1))
-
-    # Try to find confidence
-    conf_match = re.search(r'"confidence"\s*:\s*([\d.]+)', text)
-    if conf_match:
-        result['confidence'] = float(conf_match.group(1))
-
-    # Try to find risk level
-    risk_match = re.search(r'"risk"\s*:\s*"(HIGH|MEDIUM|LOW)"', text, re.IGNORECASE)
-    if risk_match:
-        result['risk'] = risk_match.group(1).upper()
-
-    # Try to find trajectory
-    traj_match = re.search(r'"trajectory"\s*:\s*"(ESCALATING|STABLE|DE-ESCALATING)"', text, re.IGNORECASE)
-    if traj_match:
-        result['trajectory'] = traj_match.group(1).upper()
-
-    # Try to find location
-    loc_match = re.search(r'"location"\s*:\s*"([^"]+)"', text)
-    if loc_match:
-        result['location'] = loc_match.group(1)
-
-    # Try to find summary
-    sum_match = re.search(r'"summary"\s*:\s*"([^"]+)"', text)
-    if sum_match:
-        result['summary'] = sum_match.group(1)
-
+    for pat, key, cast in [
+        (r'"risk_numerical"\s*:\s*(\d+)',                           "risk_numerical", int),
+        (r'"confidence"\s*:\s*([\d.]+)',                            "confidence",     float),
+        (r'"risk"\s*:\s*"(HIGH|MEDIUM|LOW)"',                      "risk",           str),
+        (r'"trajectory"\s*:\s*"(ESCALATING|STABLE|DE-ESCALATING)"',"trajectory",     str),
+        (r'"location"\s*:\s*"([^"]+)"',                            "location",       str),
+        (r'"summary"\s*:\s*"([^"]+)"',                             "summary",        str),
+        (r'"reasoning"\s*:\s*"([^"]+)"',                           "reasoning",      str),
+    ]:
+        m = re.search(pat, text, re.IGNORECASE)
+        if m:
+            try:
+                result[key] = cast(m.group(1))
+            except Exception:
+                pass
     return result
 
+
+# ─── Main Entry Point ─────────────────────────────────────────────────────────
 
 def run_analysis(
     query: str,
@@ -164,51 +169,41 @@ def run_analysis(
     source_urls: list[str],
     lang: str = "en"
 ) -> dict:
+    """Run the single-shot conflict analysis pipeline using Ollama."""
 
-    """
-    Run the fast single-shot conflict analysis pipeline.
-    """
-    # ── Check Cache (DISABLED for Live Demonstration) ───────────────
-    # cached_result = analysis_cache.get(query)
-    # if cached_result:
-    #     print(f"[Cache] Hit for query: '{query}'")
-    #     return cached_result
-
-    # ── Build context from retrieved docs ───────────────────────────────────
+    # Build context from docs
     context_parts = []
     for i, doc in enumerate(retrieved_docs[:8], start=1):
         src   = doc.metadata.get("source", doc.metadata.get("url", "unknown"))
         title = doc.metadata.get("title", "")
-        header = f"[Article {i} | {src} | {title}]"
-        context_parts.append(f"{header}\n{doc.page_content[:400]}")
-
+        context_parts.append(f"[Article {i} | {src} | {title}]\n{doc.page_content[:500]}")
     context = "\n\n".join(context_parts)[:_MAX_CONTEXT_CHARS]
 
     if not context.strip():
         print("[Pipeline] No context available — returning fallback")
         return _fallback(source_urls, query)
 
-    # ── Single LLM Call ─────────────────────────────────────────────────────
-    lang_map = {
-        "en": "English",
-        "es": "Spanish (Español)",
-        "hi": "Hindi (हिन्दी)",
-        "fr": "French",
-        "de": "German"
-    }
+    lang_map  = {"en": "English", "es": "Spanish (Español)", "hi": "Hindi (हिन्दी)", "fr": "French", "de": "German"}
     lang_name = lang_map.get(lang, "English")
-    
-    prompt = _build_master_prompt(query, context, lang_name=lang_name)
+    prompt    = _build_master_prompt(query, context, lang_name=lang_name)
 
     print(f"[Pipeline] Sending prompt for: '{query}' ({len(context)} chars context)")
-
     raw_output = _call_ollama(prompt)
-    print(f"[Pipeline] Raw output ({len(raw_output)} chars):\n{raw_output[:300]}...")
 
-    # ── Parse & Validate ────────────────────────────────────────────────────
+    if not raw_output.strip():
+        print("[Pipeline] CRITICAL: Ollama returned nothing.")
+        return _fallback(source_urls, query, overrides={
+            "summary":   "The AI engine (Ollama) failed to respond.",
+            "reasoning": (
+                f"Connection to Ollama at {_OLLAMA_BASE_URL} returned an empty stream. "
+                "Ensure Ollama is running and OLLAMA_BASE_URL is set to a reachable address "
+                "(use a Cloudflare Tunnel if the backend is hosted on Render)."
+            )
+        })
+
+    print(f"[Pipeline] Raw output ({len(raw_output)} chars):\n{raw_output[:300]}...")
     result = _parse_and_validate(raw_output, source_urls, query)
 
-    # ── Save to Cache (only if it looks real, not all defaults) ─────────────
     is_real = (
         result.get("risk_numerical", 50) != 50 or
         result.get("confidence", 0.5) != 0.5 or
@@ -217,226 +212,153 @@ def run_analysis(
     if is_real:
         analysis_cache.set(query, result)
     else:
-        print(f"[Pipeline] Result looks like defaults — NOT caching to force re-analysis")
+        print("[Pipeline] Result looks like defaults — NOT caching")
 
     return result
 
 
-# ─── Output parsing ──────────────────────────────────────────────────────────
+# ─── JSON Parsing ─────────────────────────────────────────────────────────────
 
 def _parse_and_validate(raw: str, source_urls: list[str], query: str = "") -> dict:
-    """Extract and validate JSON from the LLM output with multiple fallback strategies."""
-    raw = raw.strip()
-
+    raw  = raw.strip()
     data = None
 
     # Strategy 1: direct parse
     try:
         data = json.loads(raw)
-    except (json.JSONDecodeError, ValueError):
+    except Exception:
         pass
 
-    # Strategy 2: strip markdown code blocks then parse
+    # Strategy 2: strip markdown fences
     if data is None:
-        stripped = re.sub(r'```(?:json)?', '', raw).strip().rstrip('`').strip()
         try:
+            stripped = re.sub(r'```(?:json)?', '', raw).strip().rstrip('`').strip()
             data = json.loads(stripped)
-        except (json.JSONDecodeError, ValueError):
+        except Exception:
             pass
 
-    # Strategy 3: extract first { ... } block (handles extra text)
+    # Strategy 3: first { } block
     if data is None:
-        match = re.search(r'\{[\s\S]*\}', raw)
-        if match:
+        m = re.search(r'\{[\s\S]*\}', raw)
+        if m:
             try:
-                data = json.loads(match.group())
-            except (json.JSONDecodeError, ValueError):
+                data = json.loads(m.group())
+            except Exception:
                 pass
 
-    # Strategy 4: fix common LLM JSON mistakes (trailing commas, single quotes)
+    # Strategy 4: fix trailing commas / single quotes
     if data is None:
-        fixed = re.sub(r',\s*([}\]])', r'\1', raw)       # Remove trailing commas
-        fixed = fixed.replace("'", '"')                    # Single → double quotes
-        match = re.search(r'\{[\s\S]*\}', fixed)
-        if match:
+        fixed = re.sub(r',\s*([}\]])', r'\1', raw).replace("'", '"')
+        m = re.search(r'\{[\s\S]*\}', fixed)
+        if m:
             try:
-                data = json.loads(match.group())
-            except (json.JSONDecodeError, ValueError):
+                data = json.loads(m.group())
+            except Exception:
                 pass
 
     if data is None:
-        print("[Pipeline] All JSON parsing strategies failed — using text extraction")
-        # Strategy 5: scrape individual values from text
+        print("[Pipeline] All JSON strategies failed — extracting values by regex")
         scraped = _extract_numbers_from_text(raw, query)
-        print(f"[Pipeline] Scraped values: {scraped}")
         return _fallback(source_urls, query, overrides=scraped)
 
     return _validate_schema(data, source_urls)
 
 
 def _validate_schema(data: dict, source_urls: list[str]) -> dict:
-    """Normalize and fill missing keys with contextual defaults."""
-
-    # ── Risk validation ──────────────────────────────────────────────────────
-    # Try to parse risk_numerical first
+    # Risk numerical
     try:
         rn = int(float(str(data.get("risk_numerical", -1)).replace('%', '')))
-        if 0 <= rn <= 100:
-            data["risk_numerical"] = rn
-        else:
-            data.pop("risk_numerical", None)
+        data["risk_numerical"] = rn if 0 <= rn <= 100 else 50
     except (TypeError, ValueError):
-        data.pop("risk_numerical", None)
+        data["risk_numerical"] = 50
 
-    # Normalize risk label
+    # Risk label
     risk_raw = str(data.get("risk", "")).upper().strip()
     if risk_raw not in ("HIGH", "MEDIUM", "LOW"):
-        risk_raw = None
-
-    # Cross-derive risk label ↔ numerical
-    if "risk_numerical" in data and not risk_raw:
         n = data["risk_numerical"]
         risk_raw = "HIGH" if n >= 70 else ("LOW" if n <= 30 else "MEDIUM")
-    elif risk_raw and "risk_numerical" not in data:
-        data["risk_numerical"] = {"HIGH": 75, "MEDIUM": 50, "LOW": 25}[risk_raw]
+    data["risk"] = risk_raw
 
-    data["risk"] = risk_raw or "MEDIUM"
-    data.setdefault("risk_numerical", 50)
-
-    # ── Confidence ──────────────────────────────────────────────────────────
+    # Confidence
     try:
         c = float(str(data.get("confidence", 0.5)).replace('%', ''))
-        # If model output it as percentage (e.g. 72 instead of 0.72)
-        if c > 1.0:
-            c = c / 100.0
-        data["confidence"] = max(0.1, min(1.0, c))
+        data["confidence"] = max(0.1, min(1.0, c / 100 if c > 1.0 else c))
     except (TypeError, ValueError):
-        data.setdefault("confidence", 0.5)
+        data["confidence"] = 0.5
 
-    # ── Trajectory normalization ─────────────────────────────────────────────
-    traj_raw = str(data.get("trajectory", "")).upper().strip()
-    # Map common non-standard values to valid ones
+    # Trajectory
     traj_map = {
-        "UNSTABLE": "ESCALATING",
-        "ESCALATING": "ESCALATING",
-        "STABLE": "STABLE",
-        "DE-ESCALATING": "DE-ESCALATING",
-        "DEESCALATING": "DE-ESCALATING",
-        "DECLINING": "DE-ESCALATING",
-        "IMPROVING": "DE-ESCALATING",
-        "WORSENING": "ESCALATING",
-        "INCREASING": "ESCALATING",
+        "UNSTABLE": "ESCALATING", "ESCALATING": "ESCALATING",
+        "STABLE": "STABLE", "DE-ESCALATING": "DE-ESCALATING",
+        "DEESCALATING": "DE-ESCALATING", "DECLINING": "DE-ESCALATING",
+        "IMPROVING": "DE-ESCALATING", "WORSENING": "ESCALATING", "INCREASING": "ESCALATING",
     }
-    data["trajectory"] = traj_map.get(traj_raw, "STABLE")
+    data["trajectory"] = traj_map.get(str(data.get("trajectory", "")).upper().strip(), "STABLE")
 
-    # ── Location & Coordinates ────────────────────────────────────────────────
-    # Handle GeoJSON dict: {"type": "Point", "coordinates": [lng, lat]}
+    # Location & coordinates
     loc = data.get("location", "Global")
     if isinstance(loc, dict):
         coords = loc.get("coordinates", [])
         if len(coords) >= 2:
-            # GeoJSON is [lng, lat]
             data["longitude"] = float(coords[0])
             data["latitude"]  = float(coords[1])
         data["location"] = loc.get("name", loc.get("city", loc.get("country", "Global")))
     else:
         data["location"] = str(loc) if loc else "Global"
 
-    # Handle coordinates that may also be returned as dicts or lists
-    raw_lat = data.get("latitude", 0.0)
-    raw_lng = data.get("longitude", 0.0)
-
-    if isinstance(raw_lat, dict):
-        raw_lat = raw_lat.get("value", 0.0)
-    if isinstance(raw_lng, dict):
-        raw_lng = raw_lng.get("value", 0.0)
-
     try:
-        data["latitude"]  = float(raw_lat)
-        data["longitude"] = float(raw_lng)
+        data["latitude"]  = float(data.get("latitude",  0.0) if not isinstance(data.get("latitude"),  dict) else 0.0)
+        data["longitude"] = float(data.get("longitude", 0.0) if not isinstance(data.get("longitude"), dict) else 0.0)
     except (TypeError, ValueError):
-        data["latitude"]  = 0.0
-        data["longitude"] = 0.0
+        data["latitude"] = data["longitude"] = 0.0
 
-    data.setdefault("summary", "")
+    data.setdefault("summary",   "")
     data.setdefault("reasoning", "Analysis based on available intelligence.")
 
-    # ── Hotspots ─────────────────────────────────────────────────────────────
-    if not isinstance(data.get("hotspots"), list):
-        data["hotspots"] = []
-    clean_hotspots = []
-    for h in data["hotspots"]:
+    # Hotspots
+    clean = []
+    for h in (data.get("hotspots") or []):
         if isinstance(h, dict) and "lat" in h and "lng" in h:
             try:
-                clean_hotspots.append({
+                clean.append({
                     "name":      str(h.get("name", "unknown")),
                     "lat":       float(h["lat"]),
                     "lng":       float(h["lng"]),
                     "intensity": min(10, max(1, int(h.get("intensity", 5))))
                 })
             except (ValueError, TypeError):
-                continue
-    data["hotspots"] = clean_hotspots
+                pass
+    data["hotspots"] = clean
 
-    # ── Signals ──────────────────────────────────────────────────────────────
     if not isinstance(data.get("signals"), list):
         data["signals"] = []
 
-    # ── Defaults for complex nested fields ──────────────────────────────────
-    data.setdefault("civilian_impact", {
-        "casualties": "LOW",
-        "displacement": "Monitoring required",
-        "shortages": []
-    })
-    data.setdefault("infrastructure", {
-        "status": "Unknown",
-        "chokepoints": []
-    })
+    data.setdefault("civilian_impact", {"casualties": "LOW", "displacement": "Monitoring required", "shortages": []})
+    data.setdefault("infrastructure",  {"status": "Unknown", "chokepoints": []})
     data.setdefault("scenarios", {
-        "best":   {"description": "Positive resolution", "probability": "25%"},
-        "likely": {"description": "Status quo continues", "probability": "55%"},
-        "worst":  {"description": "Significant deterioration", "probability": "20%"},
+        "best":   {"description": "Positive resolution",      "probability": "25%"},
+        "likely": {"description": "Status quo continues",     "probability": "55%"},
+        "worst":  {"description": "Significant deterioration","probability": "20%"},
     })
-    data.setdefault("sources", [
-        {"name": url, "title": "Source Document", "type": "OSINT"}
-        for url in source_urls[:5]
-    ])
-
+    data.setdefault("sources", [{"name": url, "title": "Source Document", "type": "OSINT"} for url in source_urls[:5]])
     return data
 
 
 def _fallback(source_urls: list[str], query: str = "", overrides: dict = None) -> dict:
-    """Return a safe fallback structure, with any scraped values merged in."""
     base = {
-        "risk":             "MEDIUM",
-        "risk_numerical":   50,
-        "confidence":       0.4,
-        "trajectory":       "STABLE",
-        "location":         "Unknown",
-        "latitude":         0.0,
-        "longitude":        0.0,
-        "summary":          f"Analysis of '{query}' could not be completed. Please try again.",
-        "reasoning":        "Insufficient data to produce a reliable assessment.",
-        "hotspots":         [],
-        "signals":          [],
+        "risk": "MEDIUM", "risk_numerical": 50, "confidence": 0.4, "trajectory": "STABLE",
+        "location": "Unknown", "latitude": 0.0, "longitude": 0.0,
+        "summary":   f"Analysis of '{query}' could not be completed. Please try again.",
+        "reasoning": "Insufficient data to produce a reliable assessment.",
+        "hotspots": [], "signals": [],
         "scenarios": {
             "best":   {"description": "Situation resolves without escalation", "probability": "30%"},
             "likely": {"description": "Current trajectory continues",          "probability": "50%"},
             "worst":  {"description": "Significant negative development",      "probability": "20%"},
         },
-        "civilian_impact": {
-            "casualties":   "UNKNOWN",
-            "displacement": "Monitoring required",
-            "shortages":    []
-        },
-        "infrastructure": {
-            "status":      "Unknown",
-            "chokepoints": []
-        },
-        "sources": [
-            {"name": url, "title": "Source Document", "type": "OSINT"}
-            for url in source_urls[:5]
-        ]
+        "civilian_impact": {"casualties": "UNKNOWN", "displacement": "Monitoring required", "shortages": []},
+        "infrastructure":  {"status": "Unknown", "chokepoints": []},
+        "sources": [{"name": url, "title": "Source Document", "type": "OSINT"} for url in source_urls[:5]]
     }
     if overrides:
         base.update({k: v for k, v in overrides.items() if v is not None})
